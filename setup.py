@@ -11,9 +11,16 @@ def read(fname):
 def scripts( ):
     return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' )]
 
+# The next three lines are modified from Biopython
+__version__ = "Undefined"
+for line in open('wrairlib/__init__.py'):
+    if (line.startswith('__version__')):
+        exec(line.strip())
+        break
+
 setup(
     name = "wrairlib",
-    version = "0.0.1",
+    version = __version__,
     author = "Tyghe Vallard",
     author_email = "vallardt@gmail.com",
     description = ("Various python scripts supporting WRAIR's VDB projects"),
