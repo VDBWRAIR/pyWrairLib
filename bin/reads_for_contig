@@ -7,8 +7,8 @@ from optparse import OptionParser
 # WrairLib imports
 from wrairlib.parser.aceread import Ace
 
-def main():
-    for read in Ace( sys.argv[1] ).reads_for_contig( sys.argv[2] ):
+def main( acefile, contigname):
+    for read in Ace( acefile ).reads_for_contig( contigname ):
         print read
 
 def getops():
@@ -19,7 +19,7 @@ def getops():
     ops,args = op.parse_args()
 
     if ops.acefilepath and ops.contigname:
-        main()
+        main( ops.acefilepath, ops.contigname )
     else:
         op.error( "You need to specify the ace filepath and contig" )
         op.print_help()
