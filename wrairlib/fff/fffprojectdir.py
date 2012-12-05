@@ -13,7 +13,7 @@
 import sys
 import re
 import os
-from pyWrairLib.parser.exceptions import UnknownProjectDirectoryFormatException
+from wrairlib.parser.exceptions import UnknownProjectDirectoryFormatException
 
 def parse_dir_path( path ):
     """
