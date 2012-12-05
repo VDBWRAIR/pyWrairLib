@@ -8,6 +8,9 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+def scripts( ):
+    return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' )]
+
 setup(
     name = "wrairlib",
     version = "0.0.1",
@@ -16,14 +19,13 @@ setup(
     description = ("Various python scripts supporting WRAIR's VDB projects"),
     keywords = "biopython walter reed research python library",
     url = "https://github.com/VDBWRAIR/pyWrairLib",
-    packages = ['wrairlib'],
-    scripts = [
-    ],
+    packages = ['wrairlib', 'wrairlib.fff', 'wrairlib.parser'],
+    scripts = scripts(),
     data_files = [
     ],
     install_requires = [
-        "numpy ==1.6",
-        "biopython ==1.59"
+        "numpy >=1.6",
+        "biopython >=1.59"
     ],
     long_description=read('README.md'),
 )
