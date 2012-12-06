@@ -26,7 +26,7 @@ setup(
     description = ("Various python scripts supporting WRAIR's VDB projects"),
     keywords = "biopython walter reed research python library",
     url = "https://github.com/VDBWRAIR/pyWrairLib",
-    packages = ['wrairlib', 'wrairlib.fff', 'wrairlib.parser'],
+    packages = ['wrairlib', 'wrairlib.fff', 'wrairlib.parser', 'wrairlib.blastresult'],
     scripts = scripts(),
     data_files = [
     ],

@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+# Python Imports
+from optparse import OptionParser
+
+# Project Imports
+from wrairlib.blastresult.blasttable import BlastResult
+
+def main( blastresultfile ):
+    b = BlastResult( blastresultfile )
+    for row in b.topResults():
+        print row
+
+def getops( ):
+    op = OptionParser()
+    op.add_option( '--blast-result', dest='blastfilename', help='Blast output file path' )
+    
+    ops, args = op.parse_args()
+
+    if ops.blastfilename:
+        main( ops.blastfilename )
+    else:
+        op.print_help()
+        op.error( "You need to specify the blast result filepath" )
+
+if __name__ == '__main__':
+    getops()
