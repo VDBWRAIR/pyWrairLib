@@ -10,7 +10,10 @@ class BlastResult:
             Identifier is the furthest left column(ASSUMPTION!!!)
         """
         for ident in self.getUniqueIdentifiers():
-            yield self.topResult( ident )
+            tr = self.topResult( ident )
+            if not tr:
+                raise ValueError( "%s has no top result" % ident )
+            yield tr
 
     def getUniqueIdentifiers( self ):
         """
@@ -24,14 +27,20 @@ class BlastResult:
             Return the top result for a given identifer
             Identifier is the furthest left column(ASSUMPTION!!!)
         """
+        # Hold the very top in case nothing is found we can return it instead
+        verytop = None
         # Loop through each row in the table
         for row in self._parse():
             # If the identifier matches the one we are looking for
             if row.ident == identifier:
+                # If verytop is not set set it
+                if not verytop:
+                    verytop = row
                 # If the tax id is not -1
                 if row.genusid != -1:
                     # Return this row(It will be the top result)
                     return row
+        return verytop
 
     def _parse( self ):
         """
@@ -66,6 +75,8 @@ class BlastResultRow:
         self.speciesid = -1
         self.genusname = ""
         self.genusid = -1
+
+        self.rawline = strline.strip()
 
         self._setup()
 

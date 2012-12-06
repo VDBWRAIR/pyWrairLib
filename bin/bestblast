@@ -9,7 +9,7 @@ from wrairlib.blastresult.blasttable import BlastResult
 def main( blastresultfile ):
     b = BlastResult( blastresultfile )
     for row in b.topResults():
-        print row
+        print row.rawline
 
 def getops( ):
     op = OptionParser()
