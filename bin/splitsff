@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+
+from Bio import SeqIO
+from csv import DictReader
+from pprint import pprint
+import logging
+from multiprocessing import Process, Queue
+import multiprocessing
+import time
+import sys
+
+from wrairlib.pgm import PGMBarcode, BarcodeConsumer
+from argparse import ArgumentParser
+
+logger = multiprocessing.log_to_stderr()
+
+def main( ops ):
+    demultiplex( ops.sfffile, ops.barcodefile, ops.numreads, ops.cpus )
+
+def getops( ):
+    parser = ArgumentParser()
+    parser.add_argument( '-b', dest='barcodefile', default=None, help='PGM Barcode csv file from Torrent server' )
+    parser.add_argument( '-s', dest='sfffile', default=None, help='SFF file to demultiplex' )
+    parser.add_argument( '--numreads', dest='numreads', default='ALL', help='How many reads to demultiplex[Default: All reads]' )
+    parser.add_argument( '--cpus', dest='cpus', default=multiprocessing.cpu_count(), type=int, help='How many CPU\'s to use[Default: number of cpus on computer]' )
+    parser.add_argument( '-l', '--log-level', dest='loglevel', default='INFO', help='What log level. Choices: OFF, INFO, WARNING, DEBUG [Default: INFO]' )
+    ops = parser.parse_args()
+
+    if ops.loglevel == 'OFF':
+        pass
+    elif ops.loglevel == 'INFO':
+        logger.setLevel( logging.INFO )
+    elif ops.loglevel == 'WARNING':
+        logger.setLevel( logging.WARN )
+    elif ops.loglevel == 'DEBUG':
+        logger.setLevel( logging.DEBUG )
+    else:
+        parser.error( "Unknown Log Level" )
+
+    if ops.barcodefile and ops.sfffile:
+        main( ops )
+    else:
+        parser.error( "Need to specify a barcode file and sff file" )
+
+def parsePGMBarcodes( barcodefile, sffreads, max_num ):
+    barcodequeue = multiprocessing.Queue()
+    logger.debug( "Parsing %s into barcode instances" % barcodefile )
+    processed = 0
+    with open( barcodefile ) as fh:
+        reader = DictReader( fh )
+        # Return the list of PGMBarcode instances
+        for row in reader:
+            row['sfffilepath'] = sffreads
+            row['max_num'] = max_num
+            barcodequeue.put( PGMBarcode( **row ) )
+            processed += 1
+            logger.debug( "Created PGMBarcode process for %s" % row['id_str'] )
+    return barcodequeue
+
+def demultiplex( sfffile, barcodefile, max_num = 'ALL', cpus = multiprocessing.cpu_count() ):
+    if max_num != 'ALL':
+        max_num = int( max_num )
+
+    start = time.time()
+    logger.info( 'Beginning Demultiplexing' )
+
+    # Create cpus amount of consumer processes
+    num_consumers = cpus
+    barcode_queue = parsePGMBarcodes( barcodefile, sfffile, max_num )
+    consumers = [BarcodeConsumer( barcode_queue ) for i in range( cpus )]
+
+    # Start all the consumers
+    logger.debug( "Starting %s consumers" % num_consumers )
+    for c in consumers:
+        c.start()
+
+    # Add poison pills to stop consumers
+    logger.debug( "Feeding %s poison pills" % num_consumers )
+    for c in range( num_consumers ):
+        barcode_queue.put( None )
+
+    for c in consumers:
+        c.join()
+
+    end = time.time()
+    logger.info( "Processed %s reads in %s seconds" % (max_num, (end - start)) )
+    return []
+
+if __name__ == '__main__':
+    getops()
+
