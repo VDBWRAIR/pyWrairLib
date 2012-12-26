@@ -1,4 +1,5 @@
 import re
+from wrairlib.exceptions1 import *
 
 class BlastResult:
     def __init__( self, blastfilepath ):
@@ -49,10 +50,22 @@ class BlastResult:
         fh = open( self.blast_filepath )
         # Finished flag in case summary info is found
         finished = False
+        # Seen header line?
+        seenheaderline = False
         for l in fh:
             line = l.strip()
+
+            # Only do this for the first line
+            if not seenheaderline:
+                seenheaderline = True
+                # If no | in the first line it is a header line
+                if '|' not in l:
+                    continue
+            # Skip blank lines
             if not line:
                 continue
+
+            # Skip summary lines and set finished processing
             if line[0] == '=':
                 finished = True
             if finished:
@@ -62,7 +75,6 @@ class BlastResult:
             assert b != None
             assert b.ident
             yield b
-
         fh.close()
 
 class BlastResultRow:
@@ -92,7 +104,8 @@ class BlastResultRow:
             Parse a single row in a blast result table
         """
         columns = line.split( '\t' )
-        assert len( columns ) == 14
+        if not len( columns ) == 14:
+            raise UnknownFormatException( "Blast row:\n%s\ndoes not contain exactly 14 columns" % line )
         self.ident = columns[0]
         self.genbankinfo = columns[1].split( '|' )[0:-1]
         self.match = columns[2]
