@@ -90,21 +90,28 @@ class ProcessingDir( object ):
             '2011_12_23'
         """
         return self.getDateFromPath( os.path.basename( os.path.dirname( self.dirpath ) ) )
-        
 
-class FullProcessingDir( ProcessingDir ):
-    """ Full Processing Dirs represent Denovo runs...I think """
-    pass
-
-class SignalProcessingDir( ProcessingDir ):
     def getRunFile( self ):
         """
             Return the Titanium Run File for this processing dir
 
-            >>> spd = SignalProcessingDir( '/home/EIDRUdata/Data_seq454/2012_11_15/D_2012_11_15_22_50_31_vnode_signalProcessing' )
-            >>> assert len( spd.listAllFiles( ['.*[tT]itanium.*.txt'] ) ) == 1
+            # Should have 1 RunFileTitanium in it
+            >>> spd = ProcessingDir( '/home/EIDRUdata/Data_seq454/2012_11_15/D_2012_11_15_22_50_31_vnode_signalProcessing' )
+            >>> assert len( spd.getRunFile() ) == 1
+
+            # Should have 1 RunList in it
+            >>> spd = ProcessingDir( '/home/EIDRUdata/Data_seq454/2009_10_29/D_2009_10_29_15_41_43_FLX12070283_fullProcessing' )
+            >>> assert len( spd.getRunFile() ) == 1
+
+            # Has SampleList
+            >>> spd = ProcessingDir( '/home/EIDRUdata/Data_seq454/2010_06_30_Titanium/D_2010_06_30_15_32_19_FLX12070283_fullProcessing' )
+            >>> assert len( spd.getRunFile() ) == 0
+
+            # Has no runfile in it
+            >>> spd = ProcessingDir( '/home/EIDRUdata/Data_seq454/2010_06_30_Titanium/D_2010_06_30_15_32_19_FLX12070283_fullProcessing' )
+            >>> assert len( spd.getRunFile() ) == 0
         """
-        return self.listAllFiles( ['.*[tT]itanium.*.txt'] )
+        return self.listAllFiles( ['.*[tT]itanium.*.txt', '.*(Run|Sample)List.*.txt$'] )
 
 def _test():
     import doctest
