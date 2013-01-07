@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+from optparse import OptionParser,OptionGroup
+from wrairlib.entrez import WEntrez, default_entrez_db, default_xml
+
+#================================ Script Setup Functions ============================================#
+def set_opts( parser ):
+    parser.add_option( "-s", dest="search_term", help="Entrez search term" )
+    parser.add_option( "--local", dest='local', action='store_true', help='Use local xml file instead of entrez fetch' )
+    parser.add_option( "--xml", dest="local_xml", help="XML file to read/write. When used with --local it will be an already xml file fetched. Otherwise, it is the file to save the results too" )
+    parser.add_option( "--test", dest="test", action="store_true", help="Run tests for this script" )
+    parser.add_option( "--edb", dest="entrez_db", default=default_entrez_db, help="Entrez database to use[Default: nucleotide/nuccore" )
+    parser.add_option( "--make_fasta", dest="make_fasta", default=False, action="store_true", help="Create fasta file instead of output" )
+
+    options,args = parser.parse_args()
+
+    if not options.test:
+        if not options.local_xml:
+            parser.print_help()
+            parser.error( "Need to specify the xml filename to store results" )
+
+        if options.search_term and options.local:
+            parser.print_help()
+            parser.error( "Need to specify a search term or local not both" )
+
+    return options
+
+def test( ops ):
+    print options
+    e = WEntrez()
+    #print _search_ncbi_sequences( "WRAIR AND Influenza" )
+    e.fetch_ncbi_sequences( "WRAIR AND Influenza" )
+    #print parse_entrez( entrez_fetch_xml )
+
+def main( ops ):
+    e = WEntrez( options.local_xml )
+
+    if not options.local:
+        e.fetch_ncbi_sequences( options.search_term )
+
+    if options.make_fasta:
+        e.write_fasta( options.local_xml )
+
+if __name__ == '__main__':
+    parser = OptionParser()
+    options = set_opts( parser )
+
+    if options.test:
+        test( options )
+    else:
+        main( options )
