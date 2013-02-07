@@ -13,7 +13,34 @@
 import sys
 import re
 import os
+import os.path
 from wrairlib.parser.exceptions import UnknownProjectDirectoryFormatException
+from wrairlib.fff.mappingproject import MappingProject
+
+from Bio import SeqIO
+
+def reference_file_for_identifier( identifier, projdir ):
+    """
+        Arguments:
+            identifier -- An identifier from 454RefStatus.txt to obtain the reference file for
+    
+        Return:
+            reference file path
+
+        Tests:
+            >>> reference_file_for_identifier( 'california', 'examples/05_11_2012_1_TI-MID10_PR_2357_AH3' )
+            '/home/EIDRUdata/Tyghe/Dev/pyWrairLib/wrairlib/Ref/pdmH1N1_California.fasta'
+    """
+    mp = MappingProject( os.path.join( projdir, 'mapping', '454MappingProject.xml' ) )
+    refs = mp.get_reference_files()
+
+    useref=None
+    for ref in refs:
+        for seq in SeqIO.parse( os.path.abspath( os.path.join( projdir, ref ) ), 'fasta' ):
+            if identifier.lower() in seq.id.lower():
+                useref = ref
+                break
+    return os.path.abspath( useref )
 
 def parse_dir_path( path ):
     """
