@@ -29,18 +29,27 @@ def reference_file_for_identifier( identifier, projdir ):
 
         Tests:
             >>> reference_file_for_identifier( 'california', 'examples/05_11_2012_1_TI-MID10_PR_2357_AH3' )
-            '/home/EIDRUdata/Tyghe/Dev/pyWrairLib/wrairlib/Ref/pdmH1N1_California.fasta'
+            '/home/EIDRUdata/Tyghe/Dev/pyWrairLib/wrairlib/fff/examples/Ref/pdmH1N1_California.fasta'
+            >>> reference_file_for_identifier( 'FJ969514_NS_California04', 'examples/05_11_2012_1_TI-MID51_PR_2305_pH1N1' )
+            '/home/EIDRUdata/Tyghe/Dev/pyWrairLib/wrairlib/fff/examples/Ref/pdmH1N1_California.fasta'
+            >>> reference_file_for_identifier( 'yankydoodle', 'examples/05_11_2012_1_TI-MID51_PR_2305_pH1N1' ) is None
+            True
     """
     mp = MappingProject( os.path.join( projdir, 'mapping', '454MappingProject.xml' ) )
     refs = mp.get_reference_files()
 
     useref=None
     for ref in refs:
-        for seq in SeqIO.parse( os.path.abspath( os.path.join( projdir, ref ) ), 'fasta' ):
-            if identifier.lower() in seq.id.lower():
-                useref = ref
-                break
-    return os.path.abspath( useref )
+        refpath = ref
+        if not os.path.isabs( ref ):
+            refpath = os.path.abspath( os.path.join( projdir, ref ) )
+        try:
+            for seq in SeqIO.parse( refpath, 'fasta' ):
+                if identifier.lower() in seq.id.lower():
+                    return refpath
+        except IOError as e:
+            sys.stderr.write( "Cannot read %s" % refpath )
+            raise e
 
 def parse_dir_path( path ):
     """

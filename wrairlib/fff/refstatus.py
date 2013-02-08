@@ -31,6 +31,13 @@ class RefStatus:
             
             >>> rs = RefStatus( 'examples/gsMappingDir/mapping/454RefStatus.txt' )
             >>> rs.get_likely_reference()
+            'CY074922_PB2_Managua09'
+            >>> rs = RefStatus( 'examples/05_11_2012_1_TI-MID51_PR_2305_pH1N1/mapping/454RefStatus.txt' )
+            >>> rs.get_likely_reference()
+            'FJ969514_NS_California04'
+            >>> rs = RefStatus( 'examples/05_11_2012_1_TI-MID10_PR_2357_AH3/mapping/454RefStatus.txt' )
+            >>> rs.get_likely_reference()
+            'CY074922_PB2_Managua09'
         """
         return self.__file_contents.split( '\n' )[2].split( '\t' )[0]
 
