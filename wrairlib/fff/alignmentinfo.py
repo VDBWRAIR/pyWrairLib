@@ -161,6 +161,40 @@ class CoverageRegion( object ):
     def __str__( self ):
         return "Region between bases %s and %s is %s" % (self.start, self.end, self.regionType)
 
+    def __eq__( self, other ):
+        """
+            >>> CoverageRegion( 1, 1, 1 ) == CoverageRegion( 1, 1, 1 )
+            True
+            >>> CoverageRegion( 1, 1, 0 ) == CoverageRegion( 1, 1, 1 )
+            False
+            >>> CoverageRegion( 1, 0, 1 ) == CoverageRegion( 1, 1, 1 )
+            False
+            >>> CoverageRegion( 0, 1, 1 ) == CoverageRegion( 1, 1, 1 )
+            False
+            >>> CoverageRegion( 0, 0, 0 ) == CoverageRegion( 1, 1, 1 )
+            False
+        """
+        if self.start == other.start \
+            and self.end == other.end \
+            and self.rtype == other.rtype:
+            return True
+        return False
+
+    def __ne__( self, other ):
+        """
+            >>> CoverageRegion( 1, 1, 1 ) != CoverageRegion( 1, 1, 1 )
+            False
+            >>> CoverageRegion( 1, 1, 0 ) != CoverageRegion( 1, 1, 1 )
+            True
+            >>> CoverageRegion( 1, 0, 1 ) != CoverageRegion( 1, 1, 1 )
+            True
+            >>> CoverageRegion( 0, 1, 1 ) != CoverageRegion( 1, 1, 1 )
+            True
+            >>> CoverageRegion( 0, 0, 0 ) != CoverageRegion( 1, 1, 1 )
+            True
+        """
+        return not self.__eq__( other )
+
 class BaseInfo( object ):
     @staticmethod
     def gapBase( pos ):
