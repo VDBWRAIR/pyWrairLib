@@ -367,7 +367,7 @@ class CoverageRegion( object ):
         return self.__str__()
 
     def __str__( self ):
-        return "Region between bases %s and %s is %s" % (self.start, self.end, self.rtype)
+        return "%s,%s,%s" % (self.start, self.end, self.rtype)
 
     def __repr__( self ):
         return "CoverageRegion( %s, %s, '%s' )" % (self.start, self.end, self.rtype)
