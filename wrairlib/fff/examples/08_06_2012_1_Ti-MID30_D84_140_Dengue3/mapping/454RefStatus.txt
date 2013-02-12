@@ -1,0 +1,3 @@
+Reference	Num Unique	Pct of All	Pct of	Pct Coverage
+Accession	Matching Reads	Unique Matches	All Reads	of Reference	Description
+D3_KDC0070A_Thailand	13926	100.0%	95.6%	99.77%	

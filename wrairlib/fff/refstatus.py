@@ -10,14 +10,13 @@ class RefStatus:
     def __init__( self, file_path ):
         self.__file_path = file_path
         self.__read()
-        self.__parse()
 
     def __read( self ):
         fh = open( self.__file_path )
         self.__file_contents = fh.read()
         fh.close()
 
-    def __parse( self ):
+    def parse( self ):
         lines = self.__file_contents.split( '\n' )[1:-1]
         self.ref_status = {}
         for line in lines:
@@ -39,7 +38,11 @@ class RefStatus:
             >>> rs.get_likely_reference()
             'CY074922_PB2_Managua09'
         """
-        return self.__file_contents.split( '\n' )[2].split( '\t' )[0]
+        reflines = self.__file_contents.split( '\n' )
+        if len( reflines ) > 2 and reflines[2].strip() != '':
+            return reflines[2].split( '\t' )[0]
+        else:
+            return None
 
 def _test():
     import doctest

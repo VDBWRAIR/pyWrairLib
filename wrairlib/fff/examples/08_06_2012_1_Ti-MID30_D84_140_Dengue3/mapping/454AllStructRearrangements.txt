@@ -1,0 +1,40 @@
+DELETION
+SubjAccno	SubjPos1	RegionName1	SubjPos2	RegionName2	Length	Confidence
+D3_KDC0070A_Thailand	5194		5775		580	Low
+
+
+Consensus: 0                    5169+ GAGTGGTTGCAGCTGAGATGGAAGAAGCATTGAAAGGACTCCCAA 5213
+                                                                     **
+# supporting shotgun reads, pos 5194: 3
+# non-supporting shotgun reads, pos 5194: 14
+
+Consensus: 0                    5752+ GGATAGAGTGATTGACCCAAGAAGATGTCTCAAGCCAGTAATT 5794
+                                                                   *
+
+# supporting shotgun reads, pos 5775: 4
+# non-supporting shotgun reads, pos 5775: 8
+
+
+Individual Variation IDs: 4, 5
+
+======================================================================
+DELETION
+SubjAccno	SubjPos1	RegionName1	SubjPos2	RegionName2	Length	Confidence
+D3_KDC0070A_Thailand	6244		6917		672	Low
+
+
+Consensus: 0                    6224+ ATGGATGTGGAAATCTGGACAAAGGAAGGAGAAAGGAAAAAATTG 6268
+                                                                *
+# supporting shotgun reads, pos 6244: 13
+# non-supporting shotgun reads, pos 6244: 22
+
+Consensus: 0                    6891+ ACTTGCACCCAGCATCAGCCTGGACATTGTACGCCGTGGCCACAAC 6936
+                                                                      *
+
+# supporting shotgun reads, pos 6917: 2
+# non-supporting shotgun reads, pos 6917: 14
+
+
+Individual Variation IDs: 6, 7
+
+======================================================================
