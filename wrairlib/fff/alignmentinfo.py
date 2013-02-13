@@ -119,6 +119,22 @@ class SeqAlignment( object ):
     """ Represents a single sequence alignment """
     def __init__( self, seqalignment ):
         """
+            >>> seqalign = []
+            >>> try:
+            ...   s = SeqAlignment( seqalign )
+            ... except ValueError:
+            ...   print "Caught"
+            Caught
+            >>> seqalign = [ '>SeqID1\t1' ]
+            >>> s = SeqAlignment( seqalign )
+            >>> seqalign = [ '>SeqID1\t1', '1\tA\tA\t1\t1\t1\t1\t1.1\t1.1' ]
+            >>> s = SeqAlignment( seqalign )
+            >>> s.name
+            'SeqID1'
+            >>> len( s.bases )
+            1
+            >>> print s.regions
+            [CoverageRegion( 1, 1, 'LowCoverage' )]
             >>> seqalign = [\
             '>SeqID1\t1',\
             '1\tA\tA\t1\t1\t1\t1\t1.1\t1.1',\
@@ -148,9 +164,9 @@ class SeqAlignment( object ):
             >>> len( s.regions )
             8
             >>> print s.regions[0]
-            Region between bases 1 and 3 is LowCoverage
+            1,3,LowCoverage
             >>> print s.regions[-1]
-            Region between bases 14 and 16 is Normal
+            14,16,Normal
             >>> seqalign = [\
             '>SeqID1\t5',\
             '5\tE\t-\t4\t1\t1\t1\t1.3\t1.3',\
@@ -163,14 +179,17 @@ class SeqAlignment( object ):
             >>> len( s.regions )
             4
             >>> print s.regions[0]
-            Region between bases 1 and 4 is Gap
+            1,4,Gap
         """
+        if len( seqalignment ) == 0:
+            raise ValueError( "No sequence alignment given" )
         self.bases = []
         self.regions = []
         self.name, self.astart = seqalignment[0].split()
         self.name = self.name[1:]
         self.astart = int( self.astart )
-        self._parse( seqalignment[1:] )
+        if len( seqalignment ) > 1:
+            self._parse( seqalignment[1:] )
 
     def _parse( self, seqalignment ):
         lastPos = self.astart - 1
