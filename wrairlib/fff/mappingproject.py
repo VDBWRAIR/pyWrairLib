@@ -17,6 +17,28 @@ class MappingProject:
         self.__file_contents = fh.read()
         fh.close()
 
+    def get_primer_file( self ):
+        """
+            Extract and return all Primer files stored in
+            VectorDatabase tag
+
+            Tests:
+                >>> a = MappingProject( 'examples/454MappingProject.xml' )
+                >>> b = a.get_primer_file()
+                >>> print b
+                /some/project/dir/Primers/swH1N1_FDFusion_primer.fasta
+        """
+        files_pattern = "(?:<VectorDatabase/>)|(?:<VectorDatabase>(.*)</VectorDatabase>)"
+        results = re.search( files_pattern, self.__file_contents, re.S )
+        try:
+            primerfile = results.groups()
+            assert len( primerfile ) == 1
+            return primerfile[0]
+        except AttributeError as e:
+            raise ValueError( '%s does not have a VectorDatabase entry' % self.__file_path )
+        except AssertionError as e:
+            raise ValueError( '%s has more than one VectorDatabase entry' % self.__file_path )
+
     def get_reference_files( self ):
         """
             Extract and return all reference files

@@ -25,7 +25,7 @@ def reference_file_for_identifier( identifier, projdir ):
             identifier -- An identifier from 454RefStatus.txt to obtain the reference file for
     
         Return:
-            reference file path
+            reference file path or None if not found
 
         Tests:
             >>> reference_file_for_identifier( 'california', 'examples/05_11_2012_1_TI-MID10_PR_2357_AH3' )
