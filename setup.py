@@ -26,13 +26,19 @@ setup(
     description = ("Various python scripts supporting WRAIR's VDB projects"),
     keywords = "biopython walter reed research python library",
     url = "https://github.com/VDBWRAIR/pyWrairLib",
-    packages = ['wrairlib', 'wrairlib.fff', 'wrairlib.parser', 'wrairlib.blastresult'],
+    packages = [
+        'wrairlib', 
+        'wrairlib.fff',
+        'wrairlib.fff.fileparsers',
+        'wrairlib.parser',
+        'wrairlib.blastresult',
+    ],
     scripts = scripts(),
     data_files = [
     ],
     install_requires = [
         "numpy >=1.6",
-        "biopython >=1.59"
+        "biopython >=1.59",
     ],
     long_description=read('README.md'),
 )

@@ -16,13 +16,14 @@ import os
 import os.path
 import pprint
 
+'''
 if __name__ == "__main__":
     # Import the path just below the current script's path
     sys.path.insert( 0, os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) ) )
+'''
 
 from wrairlib.parser.exceptions import UnknownProjectDirectoryFormatException
-from wrairlib.fff.mappingproject import MappingProject
-from wrairlib.fff.fileparsers import refstatus, alignmentinfo
+from wrairlib.fff.fileparsers import refstatus, alignmentinfo, mappingproject
 
 from Bio import SeqIO
 
@@ -94,11 +95,12 @@ class ProjectDirectory( object ):
     def files( self ):
         '''
             Return all the filenames under the mapping/assembly directory
+
             >>> valid = [ "05_11_2012_1_TI-MID10_PR_2357_AH3", "05_11_2012_1_TI-MID51_PR_2305_pH1N1", "08_06_2012_1_Ti-MID30_D84_140_Dengue3", "08_31_2012_3_RL10_600Yu_10_VOID" ]
             >>> for d in valid:
             ...   len( ProjectDirectory( 'examples/' + d ).files )
             19
-            7
+            5
             32
             22
         '''
@@ -119,6 +121,7 @@ class ProjectDirectory( object ):
             >>> pd = ProjectDirectory( 'examples/' + valid[0] )
             >>> rf = pd.RefStatus
             >>> rf = pd.AlignmentInfo
+            >>> rf = pd.MappingProject
             >>> try:
             ...   pd.Nope
             ... except AttributeError as e:
@@ -176,14 +179,13 @@ def reference_file_for_identifier( identifier, projdir ):
             >>> reference_file_for_identifier( 'yankydoodle', 'examples/05_11_2012_1_TI-MID51_PR_2305_pH1N1' ) is None
             True
     """
-    mp = MappingProject( os.path.join( projdir, 'mapping', '454MappingProject.xml' ) )
+    pd = ProjectDirectory( projdir )
+    mp = pd.MappingProject
     refs = mp.get_reference_files()
 
     useref=None
     for ref in refs:
         refpath = ref
-        if not os.path.isabs( ref ):
-            refpath = os.path.abspath( os.path.join( projdir, ref ) )
         try:
             for seq in SeqIO.parse( refpath, 'fasta' ):
                 if identifier.lower() in seq.id.lower():

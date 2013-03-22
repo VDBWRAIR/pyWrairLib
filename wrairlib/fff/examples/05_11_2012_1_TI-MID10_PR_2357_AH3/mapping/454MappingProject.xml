@@ -45,7 +45,7 @@
     <backwardCompatibleContigging>false</backwardCompatibleContigging>
     <finishMode>false</finishMode>
     <autoTrimming>true</autoTrimming>
-    <VectorDatabase>../Primers/AH3N2_FD_primer_nodeg20120515.fna</VectorDatabase>
+    <VectorDatabase>../../Primers/AH3N2_FD_primer_nodeg20120515.fna</VectorDatabase>
     <screeningDatabase/>
     <haplotypeFile/>
     <targetedRegionFile/>
@@ -62,23 +62,23 @@
   <ReferenceFiles>
     <SetRefCount>1</SetRefCount>
     <File>
-      <Path>../Ref/infB_Victoria.fasta</Path>
+      <Path>../../Ref/infB_Victoria.fasta</Path>
       <Type>Fasta</Type>
     </File>
     <File>
-      <Path>../Ref/pdmH1N1_California.fasta</Path>
+      <Path>../../Ref/pdmH1N1_California.fasta</Path>
       <Type>Fasta</Type>
     </File>
     <File>
-      <Path>../Ref/H3N2_Managua.fasta</Path>
+      <Path>../../Ref/H3N2_Managua.fasta</Path>
       <Type>Fasta</Type>
     </File>
     <File>
-      <Path>../Ref/H5N1_Thailand.fasta</Path>
+      <Path>../../Ref/H5N1_Thailand.fasta</Path>
       <Type>Fasta</Type>
     </File>
     <File>
-      <Path>../Ref/H1N1_boston.fasta</Path>
+      <Path>../../Ref/H1N1_boston.fasta</Path>
       <Type>Fasta</Type>
     </File>
   </ReferenceFiles>
