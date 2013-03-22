@@ -17,6 +17,8 @@ from exceptions1 import *
 
 try:
     from Bio import SeqIO
+    from Bio.SeqIO.QualityIO import PairedFastaQualIterator
+
 except ImportError:
     print "Please make sure BioPython is installed. You can try pip install biopython on the command line"
     sys.exit( 1 )
@@ -216,6 +218,15 @@ def pretty_print( d, indent = 0 ):
             pretty_print( value, indent +1 )
         else:
             print '\t' * (indent+1) + str( value )
+
+def write_fastaqual_to_fastq( fastafile, qualfile, outputfile, title2ids=None ):
+    records = fastaqual_to_fastq( fastafile, qualfile, title2ids=title2ids )
+    count = SeqIO.write( records, outputfile, "fastq" )
+    return count
+
+def fastaqual_to_fastq( fastafile, qualfile, title2ids=None ):
+    records = PairedFastaQualIterator( fastafile, qualfile, title2ids=title2ids )
+    return records
 
 def _test():
     import doctest
