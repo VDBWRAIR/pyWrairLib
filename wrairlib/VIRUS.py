@@ -34,7 +34,6 @@ VIRUS_LOOKUP = {
     'h3n2': 'H3N2',
     'h5n1': 'H5N1',
     'infb': 'FluB',
-    'infb': 'FluB',
     'influb': 'FluB',
     'malaria': 'Malaria',
     'ph1n1': 'pH1N1',
@@ -54,4 +53,17 @@ VIRUS_LOOKUP = {
     'den2': 'Dengue2',
     'den3': 'Dengue3',
     'den4': 'Dengue4',
+}
+
+# The gene abbreviations that make up flu virus types
+# Blank one at the beginning for offset
+FLUGENES = ['', 'PB2', 'PB1', 'PA', 'HA', 'NP', 'NA', 'MP', 'NS']
+
+# Mapping of Virus to genes
+GENES = {
+    'H3N2': FLUGENES,
+    'H5N1': FLUGENES,
+    'pH1N1': FLUGENES,
+    'FluB': FLUGENES,
+    'H1N1': FLUGENES,
 }

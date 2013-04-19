@@ -12,8 +12,13 @@
 import os
 import re
 import sys
+import fnmatch
+import os.path
+import logging
 
 from exceptions1 import *
+
+from wrairlib.VIRUS import GENES
 
 try:
     from Bio import SeqIO
@@ -25,6 +30,25 @@ except ImportError:
 
 # WRAIR common fasta extensions
 FASTA_EXTENSIONS = ['fasta','fna','fas']
+
+def get_all_( datadir, fmatch ):
+    '''
+        Given a datadir of read files locate all of them
+        using the fnmatch functions and return their abspath
+
+        >>> sf = get_all_( '../../ReadData/Sanger/2013_04_02/', '*.ab1' )
+        >>> len( sf )
+        33
+        >>> sf = get_all_( '../../ReadData/Sanger/2013_04_02/', '*.test' )
+        >>> len( sf )
+        0
+    '''
+    datadir = os.path.abspath( datadir )
+    logging.debug( "Getting all %s inside of %s" % (fmatch, datadir) )
+    files = [os.path.join( datadir, filename ) for filename in os.listdir( datadir )]
+    files = fnmatch.filter( files, fmatch )
+    logging.debug( "Found files: %s" % files )
+    return files
 
 def search_refs( refs, search_term, ext_only = None ):
     """
@@ -227,6 +251,54 @@ def write_fastaqual_to_fastq( fastafile, qualfile, outputfile, title2ids=None ):
 def fastaqual_to_fastq( fastafile, qualfile, title2ids=None ):
     records = PairedFastaQualIterator( fastafile, qualfile, title2ids=title2ids )
     return records
+
+def geneabbr_to_genenum( abbr, virus ):
+    '''
+        Attempt to lookup gene position number from gene abbreviation
+        
+        >>> g = ['PB2', 'PB1', 'PA', 'HA', 'NP', 'NA', 'MP', 'NS']
+        >>> for gene in g:
+        ...   geneabbr_to_genenum( gene, 'H3N2' )
+        1
+        2
+        3
+        4
+        5
+        6
+        7
+        8
+    '''
+    genes = GENES.get( virus, False )
+    # Raise ValueError if virus not found or abbr not found
+    if genes:
+        return genes.index( abbr )
+    raise ValueError( "%s has no associated genes" % virus )
+
+def genenum_to_geneabbr( num, virus ):
+    '''
+        Attempt to lookup gene abbreviation from its position
+        
+        >>> for i in range( 1, 9 ):
+        ...   genenum_to_geneabbr( i, 'H3N2' )
+        'PB2'
+        'PB1'
+        'PA'
+        'HA'
+        'NP'
+        'NA'
+        'MP'
+        'NS'
+    '''
+    num = int( num )
+
+    genes = GENES.get( virus, False )
+    if genes:
+        if len( genes ) > num and num >= 0:
+            return genes[num]
+        else:
+            raise ValueError( "%s is out of bounds" % num )
+    else:
+        raise ValueError( "%s has no associated genes" % virus )
 
 def _test():
     import doctest

@@ -23,10 +23,12 @@ if __name__ == "__main__":
 '''
 
 from wrairlib.parser.exceptions import UnknownProjectDirectoryFormatException
-from wrairlib.fff.fileparsers import refstatus, alignmentinfo, mappingproject
+from wrairlib.fff.fileparsers import refstatus, alignmentinfo, mappingproject, newblerprogress
 
 from Bio import SeqIO
 
+class MissingProjectFile(Exception):
+    pass
 
 class ProjectDirectory( object ):
     # Set static variables
@@ -89,7 +91,7 @@ class ProjectDirectory( object ):
             n = '454' + name
             return self.files[n]
         except KeyError as e:
-            raise ValueError( "Project %s does not contain the file %s" % (self.basepath, name) )
+            raise MissingProjectFile( "Project %s does not contain the file %s" % (self.basepath, name) )
 
     @property
     def files( self ):
@@ -100,7 +102,7 @@ class ProjectDirectory( object ):
             >>> for d in valid:
             ...   len( ProjectDirectory( 'examples/' + d ).files )
             19
-            5
+            6
             32
             22
         '''
@@ -122,6 +124,7 @@ class ProjectDirectory( object ):
             >>> rf = pd.RefStatus
             >>> rf = pd.AlignmentInfo
             >>> rf = pd.MappingProject
+            >>> rf = pd.NewblerProgress
             >>> try:
             ...   pd.Nope
             ... except AttributeError as e:
@@ -136,7 +139,7 @@ class ProjectDirectory( object ):
             # Once the module is grabbed then return the instance
             return getattr( module, name )( filepath )
         except (ValueError,KeyError) as e:
-            raise AttributeError( "No fileparser for %s" % name )
+            raise AttributeError( "No fileparser for %s(%s)" % (name,str(e)) )
 
     @property
     def path( self ):

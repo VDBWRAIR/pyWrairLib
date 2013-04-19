@@ -129,6 +129,9 @@ class RunFileSample:
         # Should be tab delimeted
         s = row.split( '\t' )
 
+        if len( s ) != 8:
+            raise ValueError( "Sample Row does not contain all necessary columns: %s" % s )
+
         # Check for comment character
         if s[0].startswith( '#' ):
             self.disabled = True
@@ -138,13 +141,19 @@ class RunFileSample:
         self.name = s[1]
         self.genotype = s[2]
         self.midkeyname = s[3]
-        self.mismatchtolerance = int( s[4] )
+        if s[4] == '':
+            self.mismatchtolerance = 0
+        else:
+            try:
+                self.mismatchtolerance = int( s[4] )
+            except ValueError as e:
+                raise ValueError( "Invalid mismatch tolerance given: %s" % s[4] )
         if s[5] == 'VOID' or s[5] == 'User_defined_Reference':
             self.refgenomelocation = None
         else:
             self.refgenomelocation = s[5]
         self.uniquesampleid = s[6]
-        if s[7] == 'VOID' or s[7] == 'User_defined_Primer':
+        if s[7] == 'VOID' or s[7] == 'User_defined_Primer' or s[7] == '':
             self.primers = None
         else:
             self.primers = s[7]

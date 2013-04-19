@@ -282,9 +282,9 @@ class Primer:
                 if strmatch in seq.id:
                     try:
                         regions.append( self.get_region_from_sequence( seq ) )
-                    except ValueError:
+                    except ValueError as e:
                         # Skip malformed lines
-                        sys.stderr.write( "Could not parse %s\n" % seq.id )
+                        sys.stderr.write( "Could not parse %s because %s" % (seq.id, str(e)) )
                         continue
         except IOError as e:
             # I just want to awknowledge that this could be there
