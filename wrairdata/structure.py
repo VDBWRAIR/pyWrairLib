@@ -8,14 +8,8 @@ import sys
 import re
 import logging
 
-try:
-    from wrairdata import settings
-    from wrairdata.util import *
-except ImportError:
-    importdir = os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) )
-    sys.path.append( importdir )
-    from wrairdata import settings
-    from wrairdata.util import *
+from wrairdata import settings
+from wrairdata.util import *
 
 def determine_platform_from_path( datapath ):
     '''

@@ -1,5 +1,9 @@
 import os
-from setuptools import setup
+from distutils.core import setup
+
+from fnmatch import fnmatch
+
+from wrairlib.__init__ import __version__
 
 # Utility function to read the README file.
 # Used for the long_description. It's nice, because now 1) we have a top level
@@ -9,17 +13,11 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 def scripts( ):
-    return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' )]
+    return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' ) if not fnmatch( f, '*.swp' )]
 
-# The next three lines are modified from Biopython
-__version__ = "Undefined"
-for line in open('wrairlib/__init__.py'):
-    if (line.startswith('__version__')):
-        exec(line.strip())
-        break
-
+# Setup
 setup(
-    name = "wrairlib",
+    name = "pyWrairLib",
     version = __version__,
     author = "Tyghe Vallard",
     author_email = "vallardt@gmail.com",
@@ -28,17 +26,21 @@ setup(
     url = "https://github.com/VDBWRAIR/pyWrairLib",
     packages = [
         'wrairlib', 
-        'wrairlib.fff',
-        'wrairlib.fff.fileparsers',
         'wrairlib.parser',
         'wrairlib.blastresult',
+        'wrairdata',
+        'wrairnaming',
+        'wrairnaming.schemes',
     ],
     scripts = scripts(),
     data_files = [
+        ('config',['wrairnaming/conf/formats.cfg',]),
     ],
-    install_requires = [
-        "numpy >=1.6",
-        "biopython >=1.59",
+    requires = [
+        "xlwt",
+        "numpy (>=1.6)",
+        "biopython (>=1.59)",
+        "configobj",
     ],
     long_description=read('README.md'),
 )

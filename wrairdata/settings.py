@@ -27,7 +27,7 @@ PLATFORMS = {
     },
     'IonTorrent': {
         'filename_pattern': '%s__%s__%s__%s.%s',
-        'filename_match_pattern': '^(?P<samplename>\w+?)__(?P<midkey>\w+?)__(?P<date>\w+)__(?P<virus>\w+)\.(?P<fileextension>\w+)$'
+        'filename_match_pattern': '^(?P<samplename>\w+?)__(?P<midkey>IX\d{3})__(?P<date>\d{4}_\d{2}_\d{2})__(?P<virus>\w+)\.(?P<fileextension>\w+)$'
     }
 }
 
@@ -52,3 +52,6 @@ stat.S_IWOTH: Write by others.
 stat.S_IXOTH: Execute by others.
 '''
 PERMS = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH
+
+MIDPARSEDEFAULT = '/opt/454/config/MIDConfig.parse'
+SFFFILEDEFAULT = '/opt/454/bin/sfffile'

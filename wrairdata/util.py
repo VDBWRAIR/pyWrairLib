@@ -8,14 +8,10 @@ import datetime
 import logging
 import fnmatch
 
-from wrairlib.fff.runfiletitanium import RunFile, RunFileSample
+from wrairlib.runfiletitanium import RunFile, RunFileSample
 from wrairlib.util import get_all_
 
-try:
-    from wrairdata import settings
-except ImportError as e:
-    sys.path.append( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    from wrairdata import settings
+import settings
 
 def get_sff_files( sffdir ):
     '''
@@ -70,15 +66,15 @@ def runfile_to_sfffile_mapping( runfile ):
     mapping = {region:{} for region in rf.regions}
     # Root key should be by region
     for sample in rf.samples:
-        mapping[sample.region]["454Reads.%s.sff" % sample.midkeyname] = demultiplex_sample_name( sample )
+        mapping[sample.region]["454Reads.%s.sff" % sample.midkeyname] = demultiplex_sample_name( sample, rf.platform )
     
     return mapping
 
-def demultiplex_sample_name( sample ):
+def demultiplex_sample_name( sample, platform ):
     r'''
         Return a demultiplexed sff file name from a given RunFileSample instance
     '''
-    return settings.READ_FILENAME_PATTERN % (sample.name, sample.midkeyname, 
+    return settings.PLATFORMS[platform]['filename_pattern'] % (sample.name, sample.midkeyname, 
             sample.runfile.date.strftime( "%Y_%m_%d" ), sample.genotype, 'sff')
 
 def exec_recursive( path, func, *args, **kwargs ):

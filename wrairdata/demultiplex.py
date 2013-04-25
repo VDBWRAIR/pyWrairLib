@@ -2,12 +2,7 @@ import os
 import os.path
 import sys
 
-try:
-    from wrairdata.util import *
-except ImportError:
-    thisdir = os.path.dirname( os.path.dirname( __file__ ) )
-    sys.path.append( thisdir )
-    from wrairdata.demultiplex import *
+from util import *
 
 def demultiplex( runfilepath, sffdir, outputdir=os.getcwd(), midparsefile='/opt/454/config/MidConfig.parse', sfffilecmd='/opt/454/bin/sfffile' ):
     '''

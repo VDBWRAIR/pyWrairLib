@@ -1,4 +1,0 @@
-Reference Accno1	Ref Pos1	Var Side1	Region Name1	Reference Accno2	Ref Pos2	Var Side2	Region Name2	Total Depth	Var Freq	Deviation Length	Type	# fwd with var1	# rev with var1	# total fwd1	# total rev1	# fwd w/ var expanded1	# rev w/ var expanded1	# total fwd expanded1	# total rev expanded1	# fwd with var2	# rev with var2	# total fwd2	# total rev2	# fwd w/ var expanded2	# rev w/ var expanded2	# total fwd expanded2	# total rev expanded2	High Frequency Side	VarID
-17	135	-->		17	408	<--		7	42.86	272	Point	1	2	4	3	7	2	33	71	2	1	3	4	7	2	9	188	1	var4x
-17	1034	-->		17	1509	<--		11	27.27	474	Point	2	1	6	5	10	3	33	136	3	1	7	17	10	3	17	90	1	var5x
-20	327	-->		20	1019	<--		5	60.00	691	Point	1	2	2	3	2	8	11	64	1	1	5	7	2	8	10	155	1	var10x

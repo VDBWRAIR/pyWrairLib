@@ -20,16 +20,7 @@ import os.path
 import sys
 from argparse import ArgumentParser
 
-# Some useful directories
-thisdir = os.path.abspath( os.path.dirname( __file__ ) )
-importpath = os.path.dirname( os.path.dirname( thisdir ) )
-
-# If not installed just put path below the module directory
-try:
-    from wrairdata.structure import *
-except ImportError:
-    sys.path.append( importpath )
-    from wrairdata.structure import *
+from wrairdata.structure import *
 from wrairdata import settings
 
 # Grab the logger

@@ -2,6 +2,8 @@ import re
 import string
 import os.path
 
+from configobj import ConfigObj, Section
+
 class InvalidFormat( Exception ):
     pass
 
@@ -12,11 +14,8 @@ class OutputFormatter( object ):
     '''
         Descriptor for output formats
     '''
-    def __init__( self ):
-        self.format = None
-
     def __get__( self, instance, owner ):
-        return self.format
+        return getattr( instance, 'output_format', None )
     
     def __set__( self, instance, value ):
         '''
@@ -28,21 +27,18 @@ class OutputFormatter( object ):
         formatter = string.Formatter().parse( value )
         # Get num of fields to validate name fields later
         instance.num_output_fields = len( [f for f in formatter] )
-        self.format = value
+        instance.output_format = value
 
 class InputFormatter( object ):
     '''
         Descriptor for input formats
     '''
-    def __init__( self ):
-        self.format = None
-
     def __get__( self, inst, itype ):
-        return self.format
+        return getattr( inst, 'input_format', None )
 
     def __set__( self, inst, value ):
         ''' Regular expression must be a full match as re.match will be used '''
-        self.format = self._validate( value )
+        inst.input_format = self._validate( value )
 
     def _validate( self, value ):
         if isinstance( value, str ):
@@ -98,3 +94,82 @@ class FormatScheme( object ):
             return self.name_output_format.format( **fileparts )
         except KeyError as e: # Gets thrown if fileparts is missing a key that the format expects
             raise InvalidParts( "Expected %d file information fields. Got %d." % (self.num_output_fields, len( fileparts )) )
+
+    def __repr__( self ):
+        return "FormatScheme( '{}', '{}' )".format( self.name_input_format.pattern, self.name_output_format )
+
+class GenericNameFormatter( object ):
+    '''
+        Abstract class to allow easy ConfigObj attr_in/out_format Sections to be initialized
+    '''
+    def __init__( self, *args, **kwargs ):
+        '''
+            Accepts a ConfigObj.Section(or dictionary i guess will work too) or any amount of kwargs
+                kwargs or section keys are to be in pairs of formatters
+                <name>_in_format & <name>_out_format and be valid parameters for
+                InputFormatter and OutputFormatter
+        '''
+        # Detect ConfigObj.Section
+        if len( args ) == 1 and isinstance( args[0], Section ):
+            formats = args[0]
+        else:
+            # or just use kwargs for source
+            formats = ConfigObj( kwargs )
+
+        if len( formats ) < 2:
+            raise ValueError( "Incorrect amount of formats provided" )
+
+        # Detect formatters and set instance attributes/methods
+        self._setup_inst( formats )
+
+    def _setup_inst( self, formats ):
+        '''
+            Setup FormatScheme instance attributes using simple split on keys of formats
+            First item is the name, second item is in/out
+        '''
+        attrs = self._get_format_attrs( formats )
+        # Set instance attributes
+        for k,v in attrs.items():
+            if not ('in' in v or 'out' in v):
+                raise ValueError( "%s does not have in and out format" % k )
+            else:
+                self._set_format_attr( k, v )
+                self._set_format_attrmethod( k )
+
+    def _get_format_attrs( self, formats ):
+        '''
+            Get attributes dictionary from formats parameter dictionary
+        '''
+        attributes = {}
+        # Compile a list of attributes
+        for k,v in formats.items():
+            try:
+                name, inout, _ = k.split( '_' )
+            except ValueError as e:
+                raise ValueError( "Incorrect formats given" )
+            attrname = "%s_format" % name
+            if attrname not in attributes:
+                attributes[attrname] = {}
+            attributes[attrname][inout] = v
+        if len( attributes ) > 0:
+            return attributes
+        else:
+            raise ValueError( "Incorrect amount of formats provided" )
+
+    def _set_format_attr( self, attrname, formats ):
+        '''
+            Create instance attributes from attributes
+        '''
+        fs = FormatScheme( formats['in'], formats['out'] )
+        setattr( self, attrname, fs )
+
+    def _set_format_attrmethod( self, attrname ):
+        '''
+            Essentially alias the FormatScheme's get_new_name to self.rename_attrname
+        '''
+        # methodname with _format stripped off
+        methname = "rename_%s" % attrname.rstrip( '_format' )
+        # The function to alias
+        func = getattr( self, attrname ).get_new_name
+        # Alias self.<methname> to func
+        setattr( self, methname, func )

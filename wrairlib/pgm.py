@@ -1,3 +1,4 @@
+### Classes to aid in demultiplexing PGM barcodes
 import multiprocessing
 import logging
 import os

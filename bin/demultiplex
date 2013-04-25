@@ -41,12 +41,7 @@ from argparse import ArgumentParser
 from glob import glob
 import logging
 
-try:
-    import wrairdata.settings
-except ImportError:
-    importpath = os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) )
-    sys.path.append( importpath )
-    import wrairdata.settings
+from wrairdata import settings
 
 # Grab the logger
 logging.basicConfig(level=settings.LOG_LEVEL, format='%(asctime)s -- %(name)s[%(levelname)s] -- %(message)s')
@@ -55,15 +50,10 @@ logger = logging.getLogger( 'demultiplex' )
 thisdir = os.path.abspath( os.path.dirname( __file__ ) )
 importpath = os.path.dirname( os.path.dirname( thisdir ) )
 
-midparsedefault = '/opt/454/config/MIDConfig.parse'
-sfffiledefault = '/opt/454/bin/sfffile'
+midparsedefault = settings.MIDPARSEDEFAULT
+sfffiledefault = settings.SFFFILEDEFAULT
 
-# If not installed just put path below the module directory
-try:
-    from wrairdata.demultiplex import *
-except ImportError:
-    sys.path.append( importpath )
-    from wrairdata.demultiplex import *
+from wrairdata.demultiplex import *
 
 def main( args ):
     # There is a bug here with dealing with the midparsefile
@@ -76,9 +66,9 @@ def main( args ):
     else:
         runfile, sffdir, midparsefile = args.runfile, args.sffdir, args.midparsefile
 
-    # Make sure midparsefile exists or use the default location
+    # Make sure midparsefile exists or use the command line arg
     if not os.path.exists( midparsefile ):
-        midparsefile = midparsedefault
+        midparsefile = args.midparsefile
 
     # Either use defaults or whatever was given
     outputdir = args.outputdir
