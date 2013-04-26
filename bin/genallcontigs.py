@@ -1,24 +1,5 @@
 #!/usr/bin/env python
 
-##############################################################################
-##  Author: Tyghe Vallard
-##  Date: 3/21/2013
-##  Email: vallardt@gmail.com
-##  Purpose:
-##      Searches inside a given directory for any gsMapper directories
-##      For every gsMapper directory found, runs to_allsamples from
-##      allcontig_to_allsample.py script
-##      From the records returned(fastq records) writes them to a file
-##      named after the project directory inside of the given output
-##      directory.
-##      The output is essentially a single directory containing
-##      Merged 454AllContigs.fna & .qual files into a .fastq file
-##      for each gsMapper directory
-##  Version:
-##      1.0 -
-##          Initial Script
-##############################################################################
-
 from argparse import ArgumentParser
 import sys
 import os

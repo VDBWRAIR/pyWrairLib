@@ -1,20 +1,5 @@
 #!/usr/bin/env python
 
-##############################################################################
-##  Author: Tyghe Vallard
-##  Date: 3/21/2013
-##  Email: vallardt@gmail.com
-##  Purpose:
-##   Given a directory containing gsMapper projects, this script will find
-##    all 454RefStatus.txt files and compiles a single Excel spreadsheet
-##    from them for all references used across all projects.
-##    You can also specify a reference file to 'target' so that only the
-##    references inside that file will be listed in the output excel file.
-##  Version:
-##      1.0 -
-##          Initial Script
-##############################################################################
-
 import os
 import os.path
 import sys
@@ -24,7 +9,7 @@ from Bio import SeqIO
 
 from roche.newbler.projectdir import ProjectDirectory
 
-from refstatusxls import *
+from wrairanalysis.refstatusxls import *
 
 def ref_idents( reffile ):
     return [seq.id for seq in SeqIO.parse( reffile, 'fasta' )]

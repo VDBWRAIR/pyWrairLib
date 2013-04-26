@@ -6,15 +6,19 @@ Available Scripts
 
 Analysis
 --------
-* genallcontigs.py
-* genallrefstatus.sh
 * genSummary.sh
  * Runs summary scripts to generate compiled summary output for GsMapper projects inside a directory
 * mapSamples.py
  * Creates and runs gsmapper projects based on a RunFile
 * mapSummary.py
-* refstatusxls.py
+ * Creates AllRefStatus.xls file which gives mapping depth and coverage percentage for each reference that was
+   used in the reference mappings
+* genallcontigs.py
+ * Creates a directory containing all GsMapper project's 454AllContigs.fna+.qual consolidated into a single directory. Each AllContigs fasta+qual file is merged into a single .fastq file named after the GsMapper project directory from which it originated.
 * allcontig_to_allsample.py
+ * Merges a GsMapper project's 454AllContigs.fna and 454AllContigs.qual file into a single .fastq
+* genallrefstatus.sh
+ * Legacy shell script that merges together all found 454RefStatus.txt files into a single output stream/file
 
 Data
 ----
@@ -22,13 +26,12 @@ Data
 * demultiplex
 * link_reads
 
-Misc
+Misc/Undocumented
 ----
 * bestblast
 * entrez_helper
 * reads_for_contig
 * refrename.py
-
 
 Config Files
 ------------
@@ -130,3 +133,58 @@ Usage
 ```
 genSummary.sh
 ```
+
+mapSummary.py
+-------------
+
+Given a directory containing gsMapper projects, this script will find all 454RefStatus.txt files and 
+compiles a single Excel spreadsheet from them for all references used across all projects.
+You can also specify a reference file to 'target' so that only the references inside that file will be 
+listed in the output excel file.
+
+Usage
+-----
+
+```
+mapSummary.py -d <projectdir> [-r <reference>] [-o <outputfile>]
+```
+
+* projectdir can by any directory that directly contains GsMapper projects. Usually this directory is the same directory that mapSamples.py was executed from.
+* reference is optional and should be one of the reference files that was used in the mapping. This basically filters out 
+all references so that only the reference you specify will be listed in the output
+* outputfile is optional and specifies where to write the resulting Excel file. The default is in the current directory with the name AllRefStatus.xls
+
+genallcontigs.py
+----------------
+
+Searches inside a given directory for any gsMapper directories
+For every gsMapper directory found, it gathers all contigs from the 454AllContigs.fna and writes them to a file named 
+after the project directory inside of the given output directory.
+The output is essentially a single directory containing Merged 454AllContigs.fna & .qual files into a .fastq file for 
+each gsMapper directory
+
+Usage
+-----
+
+```
+genallcontigs.py -d <projectdir> [-o <outputdir>]
+```
+
+* projectdir can by any directory that directly contains GsMapper projects. Usually this directory is the same directory that mapSamples.py was executed from.
+* outputdir is optional and defines what directory to place the results in. By default it is FastaContigs inside the current directory.
+
+allcontig_to_allsample.py
+-------------------------
+
+Given a single gsMapper project directory, merges the 454AllContigs.fna and 454AllContigs.qual 
+files into a single .fastq file Output is by default sent to STDOUT(screen) but can be set to a file by using the -o option
+
+Usage
+-----
+
+```
+allcontig_to_allsample.py -p <gsproject> [-o <outputfile>]
+```
+
+* gsproject is the path to a single Gs Project
+* outputfile is optional and should be a file to write the resulting fastq to. By default it is written to the terminal
