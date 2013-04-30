@@ -59,7 +59,7 @@ done
 
 mkdir ${gapdir}/Segments
 # Make sure all.gaps exists
-if [ -e 'all.gaps' ]
+if [ ! -e 'all.gaps' ]
 then
     # Separate all segment gap files
     for segno in {1..8}
@@ -76,7 +76,7 @@ then
         # sample,gaps low coverage
         # The base name for each segment file <gene abbreviation>__<gene no>
         segname="${segment_names[${segno}]}__${segno}"
-        egrep "(.*__.*__.*)$|/${segno}," ${gapdir}/all.gaps | grep -B 1 "/${segno}," | grep -v '\-\-' | xargs -n 2 | sed "s/\(.*\)\s.*\/${segno},/\1,/" > ${gapdir}/Segments/${segname}.gaps
+        egrep "(.*__.*__.*)$|/${segno},|/${segment_names[${segno}]}," ${gapdir}/all.gaps | grep -B 1 "/${segno}\|${segment_names[${segno}]}," | grep -v '\-\-' | xargs -n 2 | sed "s/\(.*__.*__.*\)\s.*\/\(${segno}\|${segment_names[${segno}]}\),/\1,/" > ${gapdir}/Segments/${segname}.gaps
 
         # Generate the Graphic
         gapstoscatter --csv ${gapdir}/Segments/${segname}.gaps -o ${gapdir}/Segments/${segname}.png -t "${virus} Segment ${segname}"
