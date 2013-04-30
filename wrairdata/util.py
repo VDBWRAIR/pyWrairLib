@@ -10,6 +10,7 @@ import fnmatch
 
 from wrairlib.runfiletitanium import RunFile, RunFileSample
 from wrairlib.util import get_all_
+from wrairnaming import Formatter
 
 import settings
 
@@ -17,10 +18,6 @@ def get_sff_files( sffdir ):
     '''
         Given an directory path return all the sff files in that path as a dictionary keyed
         by the numerical value just preceeding the .sff in the name
-
-        >>> fp = '../../ReadData/Roche454/D_2013_03_13_13_56_26_vnode_signalProcessing/'
-        >>> s = get_sff_files( fp + 'sff' )
-        >>> assert {1: '/home/EIDRUdata/NGSData/ReadData/Roche454/D_2013_03_13_13_56_26_vnode_signalProcessing/sff/H52E4QC01.sff', 2: '/home/EIDRUdata/NGSData/ReadData/Roche454/D_2013_03_13_13_56_26_vnode_signalProcessing/sff/H52E4QC02.sff'} == s
     '''
     # The list of sff files
     sff_files = {int(os.path.basename( sff )[-6:-4]):os.path.abspath( sff ) for sff in glob( sffdir + '/*.sff' )}
@@ -74,8 +71,15 @@ def demultiplex_sample_name( sample, platform ):
     r'''
         Return a demultiplexed sff file name from a given RunFileSample instance
     '''
-    return settings.PLATFORMS[platform]['filename_pattern'] % (sample.name, sample.midkeyname, 
-            sample.runfile.date.strftime( "%Y_%m_%d" ), sample.genotype, 'sff')
+    f = Formatter()
+    f = getattr( f, platform )
+    return f.read_format.get_output_name(
+        samplename=sample.name,
+		midkey=sample.midkeyname,
+		date=sample.runfile.date.strftime( '%Y_%m_%d' ),
+		virus=sample.genotype,
+		extension='sff'
+    )
 
 def exec_recursive( path, func, *args, **kwargs ):
     '''

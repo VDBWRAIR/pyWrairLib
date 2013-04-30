@@ -12,17 +12,17 @@ class Formatter( object ):
 
         If config is None then the default path + '/config/formats.cfg' will be used
     '''
-    DEFAULT_CONF = ['config','formats.cfg']
+    DEFAULT_CONF = ['config','settings.cfg']
 
     def __init__( self, config=None ):
         if config is None:
             # I'm so confused about python package data files and the correct
             #  way to handle them. So doing this
             config = os.path.join( sys.prefix, *self.DEFAULT_CONF)
-            config = ConfigObj( config )
+            config = ConfigObj( config, interpolation='Template' )
         # Make sure config is a valid configobj
         if not isinstance( config, ConfigObj ):
-            config = ConfigObj( config )
+            config = ConfigObj( config, interpolation='Template' )
         self.config = config
 
         self._formattercache = {}
@@ -42,7 +42,7 @@ class Formatter( object ):
         '''
         if attr in self.config.sections:
             if attr not in self._formattercache:
-                self._formattercache[attr] = GenericNameFormatter( **self.config[attr] )
+                self._formattercache[attr] = GenericNameFormatter( self.config[attr] )
             return self._formattercache[attr]
         else:
-            raise AttributeError( "%s is not a valid section title" % attr )
+            raise AttributeError( "%s is not a valid section title. Valid sections are %s" % (attr,self.config.sections) )

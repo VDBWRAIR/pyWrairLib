@@ -10,6 +10,48 @@ from ..runfiletitanium import RunFile
 #  without giving it an actual file
 empty_runfile = StringIO( "" )
 
+header_template = string.Template('''# $platform sample list
+# $regions Region $rtype
+# Run File ID: $date.$id
+$headerline
+$samples''')
+hdr = '!Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers'
+
+def make_runfile_stringio( platform, regions, rtype, date, id, headerline=hdr, samples='' ):
+    rf = StringIO( header_template.substitute(
+        platform=platform,
+        regions=regions,
+        rtype=rtype,
+        date=date,
+        id=id,
+        headerline=headerline,
+        samples=samples)
+    )
+    return rf
+
+#######################
+## samples property ###
+#######################
+def test_samples( ):
+    samples = '''1	Sample1	Virus	TI001	0	VOID	Sample1	VOID
+1	Sample2	Virus	TI002	0	VOID	Sample2	VOID
+#2	Sample3	Virus	TI001	0	VOID	Sample3	VOID
+2	Sample4	Virus	TI002	0	VOID	Sample4	VOID
+'''
+    rf = make_runfile_stringio(
+        platform='platform',
+		regions='2',
+		rtype='PTP',
+		date='01011979',
+		id='testfile',
+		headerline=hdr,
+		samples=samples
+    )
+    rf = RunFile( rf )
+    assert len( rf.samples ) == 3, "Should be %s samples. Got %s" % (len( rf.samples ), rf.samples)
+    assert len( rf[1] ) == 2
+    assert len( rf[2] ) == 1
+
 ##########################
 ##### parse_id_line ######
 ##########################
@@ -94,13 +136,13 @@ def test_prl_zeroregions():
 ###############
 #### parse ####
 ###############
-header_template = string.Template('''# $platform sample list								
-# $regions Region $rtype								
-# Run File ID: $date.$id
-$headerline''')
-hdr = '!Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers'
 
 def test_p_valid():
-    rf = StringIO( header_template.substitute( platform='platform', regions='2', rtype='PTP', date='01011979', id='testfile', headerline=hdr ) )
-    print rf.getvalue()
-    RunFile( rf )
+    rf = make_runfile_stringio( platform='platform', regions='2', rtype='PTP', date='01011979', id='testfile', headerline=hdr )
+    rf = RunFile( rf )
+    assert rf.platform == 'platform'
+    assert rf.regions == (1,2)
+    assert rf.type == 'PTP'
+    assert rf.date == date( 1979, 1, 1 )
+    assert rf.id == 'testfile'
+    assert len( rf.samples ) == 0

@@ -31,10 +31,11 @@ setup(
         'wrairdata',
         'wrairnaming',
         'wrairnaming.schemes',
+        'wrairanalysis',
     ],
     scripts = scripts(),
     data_files = [
-        ('config',['wrairnaming/conf/formats.cfg',]),
+        ('config',['config/settings.cfg',]),
     ],
     requires = [
         "xlwt",

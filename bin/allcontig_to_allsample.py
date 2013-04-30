@@ -78,7 +78,7 @@ def to_allsample( gsproj, outputfile ):
 
     # Set the global variable for samplename for title2id to work
     gsdirformatter = formatter.GsProject
-    samplename = gsdirformatter.directory_format.parse_input_name( gsproj.basepath )['sample']
+    samplename = gsdirformatter.directory_format.parse_input_name( gsproj.basepath )['samplename']
 
     # Write the records
     records = write_fastaqual_to_fastq( fastah, qualh, outputfile, title2ids=rename_seqid )

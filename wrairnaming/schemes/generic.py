@@ -74,7 +74,7 @@ class FormatScheme( object ):
         m = self.name_input_format.match( basename )
         if m:
             return m.groupdict()
-        raise InvalidFormat( "%s is incorrectly formatted" % name )
+        raise InvalidFormat( "%s is incorrectly formatted. Does not match pattern %s" % (name,self.name_input_format.pattern) )
 
     def get_new_name( self, oldname ):
         parts = self.parse_input_name( oldname )

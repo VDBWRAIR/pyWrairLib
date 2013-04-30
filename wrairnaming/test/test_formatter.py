@@ -1,3 +1,4 @@
+import nose
 from ..formatter import Formatter
 from ..schemes.generic import GenericNameFormatter
 
@@ -36,3 +37,11 @@ attr1_out_format = "{n1}|{n2}"
         formatter = self.otherconfig()
         assert formatter.FormatSection1 is formatter.FormatSection1
         assert formatter.get_formatter_for('FormatSection1') is formatter.get_formatter_for('FormatSection1')
+
+    def test_badsection( self ):
+        formatter = self.otherconfig()
+        try:
+            formatter.MissingSection
+            assert False, "Did not raise AttributeError for missing section"
+        except AttributeError as e:
+            assert True

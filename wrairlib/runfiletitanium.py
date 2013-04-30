@@ -2,6 +2,7 @@
 
 import re
 from datetime import date
+from wrairnaming import Formatter
 
 class RunFile( object ):
     def __init__( self, handle ):
@@ -13,25 +14,30 @@ class RunFile( object ):
         self.handle = handle
         self.regions = []
         self.id = ""
-        self.samples = []
+        self._samples = []
+        self.samples_by_region = {}
         self.headers = []
         self._parse()
+
+    @property
+    def samples( self ):
+        '''
+            Return a list of all items joined together from the regions dictionary
+        '''
+        return [sample for r, samples in self.samples_by_region.items() for mid, sample in samples.items()]
+
+    def __getitem__( self, key ):
+        ''' Should return list of samples for a given region '''
+        return self.samples_by_region[key]
+
+    def add_sample( self, rfsample ):
+        if rfsample.region not in self.samples_by_region:
+            self.samples_by_region[rfsample.region] = {}
+        self.samples_by_region[rfsample.region][rfsample.midkeyname] = rfsample
 
     def _parse( self ):
         """
             Parse the file into the important pieces
-
-            >>> rf = RunFile( open( '/home/EIDRUdata/Data_seq454/2011_12_23/D_2011_12_24_00_58_20_vnode_signalProcessing/RunfileTitanium_122311.txt' ) )
-            >>> assert rf.type == 'PTP'
-            >>> assert rf.platform == 'Roche454'
-            >>> assert rf.regions == [1,2]
-            >>> assert rf.id == 'AFRIMS_Den2AndPathogenDiscovery'
-            >>> assert rf.date == date( 2011, 12, 23 )
-            >>> assert len( rf.headers ) == 8
-            >>> assert len( rf.samples ) == 66
-            >>> rf = RunFile( open( '/home/EIDRUdata/NGSData/ReadData/Roche454/D_2013_03_13_13_56_26_vnode_signalProcessing/meta/Runfile__FlxPlus__2013_03_12.txt' ) )
-            >>> assert rf.type == 'PTP'
-            >>> assert rf.regions == [1,2]
         """
         count = 0
         for row in self.handle:
@@ -52,7 +58,7 @@ class RunFile( object ):
                 count += 1
                 continue
             else:
-                self.samples.append( RunFileSample( row.strip(), self ) )
+                self.add_sample( RunFileSample( row.strip(), self ) )
             count += 1
 
     def _parse_id_line( self, line ):
@@ -89,7 +95,6 @@ class RunFile( object ):
         rftype = m[1]
 
         return regions, rftype
-            
 
 class RunFileSample:
     def __init__( self, runfilerow, runfile ):
