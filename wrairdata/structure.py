@@ -8,28 +8,18 @@ import sys
 import re
 import logging
 
-from wrairdata import settings
-from wrairdata.util import *
+from settings import config
+from util import *
 
 def determine_platform_from_path( datapath ):
     '''
         Given a read data or raw data path extract the platform from it
         I.E: NGSData/ReadData/Sanger/2013_04_02 would return Sanger
-
-        >>> dp = ['NGSData/ReadData/Sanger/2013_04_02', 'NGSData/ReadData/Roche454/2013_04_02', 'NGSData/ReadData/IonTorrent/2013_04_02', 'NGSData/ReadData/Bogus/2013_04_02', 'NGSData/RawData/Sanger/2013_04_02']
-        >>> for d in dp:
-        ...   try:
-        ...     determine_platform_from_path( d )
-        ...   except ValueError as e:
-        ...     print "Caught"
-        'Sanger'
-        'Roche454'
-        'IonTorrent'
-        Caught
-        'Sanger'
     '''
-    platform_pat = "(" + "|".join( settings.PLATFORMS.keys() ) + ")"
-    m = re.search( platform_pat, datapath )
+    # I guess abspath doesn't raise an error on an invalid path
+    abs_datapath = os.path.abspath( datapath )
+    platform_pat = "(" + "|".join( config['DEFAULT']['platforms'] ) + ")"
+    m = re.search( platform_pat, abs_datapath )
     if m:
         return m.groups( 0 )[0]
     else:
@@ -38,7 +28,7 @@ def determine_platform_from_path( datapath ):
 def match_pattern_for_datadir( datadir ):
     ''' Determine platform from path then return key from dictionary '''
     platform = determine_platform_from_path( datadir )
-    return settings.PLATFORMS[platform]['filename_match_pattern']
+    return config[platform]['read_in_format']
 
 def link_reads_by_sample( datadir, outputbase ):
     '''

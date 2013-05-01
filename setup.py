@@ -2,8 +2,11 @@ import os
 from distutils.core import setup
 
 from fnmatch import fnmatch
+import subprocess
+import sys
 
-from wrairlib.__init__ import __version__
+# The major.minor version number
+__version__ = 0.8
 
 # Utility function to read the README file.
 # Used for the long_description. It's nice, because now 1) we have a top level
@@ -15,7 +18,31 @@ def read(fname):
 def scripts( ):
     return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' ) if not fnmatch( f, '*.swp' )]
 
+def set_version():
+    if not os.path.isdir(".git"):
+        print "This does not appear to be a Git repository."
+        return
+    try:
+        p = subprocess.Popen(["git", "describe", "--always"], stdout=subprocess.PIPE)
+    except EnvironmentError:
+        print "unable to run git"
+        return
+    stdout = p.communicate()[0]
+    if p.returncode != 0:
+        print "unable to run git"
+        return
+
+    with open( '_version.py', 'w' ) as fh:
+        global __version__
+        __version__ = "%s.%s" % (__version__, stdout.strip())
+        fh.write( "__version__ = '%s'\n" % __version__ )
+
+    return True
+
 # Setup
+if set_version() is None:
+    sys.exit( -1 )
+
 setup(
     name = "pyWrairLib",
     version = __version__,

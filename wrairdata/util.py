@@ -13,6 +13,7 @@ from wrairlib.util import get_all_
 from wrairnaming import Formatter
 
 import settings
+from settings import config
 
 def get_sff_files( sffdir ):
     '''
@@ -98,9 +99,9 @@ def exec_recursive( path, func, *args, **kwargs ):
         [func( os.path.join( root, fd ), *args, **kwargs ) for fd in files]
 
 def make_readonly( path ):
-    owner = settings.OWNER
-    group = settings.GROUP
-    perms = settings.PERMS
+    owner = config['DEFAULT']['Owner']
+    group = config['DEFAULT']['Group']
+    perms = config['DEFAULT']['Perms']
     os.chmod( path, perms )
     os.chown( path, owner, group )
     logging.debug( "Changed permissions of %s to %s" % (path, perms) )
