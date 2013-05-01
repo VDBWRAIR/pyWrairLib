@@ -23,7 +23,7 @@ def set_version():
         print "This does not appear to be a Git repository."
         return
     try:
-        p = subprocess.Popen(["git", "describe", "--always"], stdout=subprocess.PIPE)
+        p = subprocess.Popen(["git", "describe", "--tags", "--always"], stdout=subprocess.PIPE)
     except EnvironmentError:
         print "unable to run git"
         return
