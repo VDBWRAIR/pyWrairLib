@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 # The major.minor version number
-__version__ = 0.9
+__version__ = 0
 
 # Utility function to read the README file.
 # Used for the long_description. It's nice, because now 1) we have a top level
@@ -34,7 +34,7 @@ def set_version():
 
     with open( '_version.py', 'w' ) as fh:
         global __version__
-        __version__ = "%s.%s" % (__version__, stdout.strip())
+        __version__ = stdout.strip()
         fh.write( "__version__ = '%s'\n" % __version__ )
 
     return True
