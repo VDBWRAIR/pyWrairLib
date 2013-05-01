@@ -99,9 +99,9 @@ def exec_recursive( path, func, *args, **kwargs ):
         [func( os.path.join( root, fd ), *args, **kwargs ) for fd in files]
 
 def make_readonly( path ):
-    owner = config['DEFAULT']['Owner']
-    group = config['DEFAULT']['Group']
-    perms = config['DEFAULT']['Perms']
+    owner = int( config['DEFAULT']['Owner'] )
+    group = int( config['DEFAULT']['Group'] )
+    perms = int( config['DEFAULT']['Perms'], 8 )
     os.chmod( path, perms )
     os.chown( path, owner, group )
     logging.debug( "Changed permissions of %s to %s" % (path, perms) )
