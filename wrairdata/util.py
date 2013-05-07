@@ -79,6 +79,7 @@ def demultiplex_sample_name( sample, platform ):
 		midkey=sample.midkeyname,
 		date=sample.runfile.date.strftime( '%Y_%m_%d' ),
 		virus=sample.genotype,
+        region=sample.region,
 		extension='sff'
     )
 
