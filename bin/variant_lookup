@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+from roche.newbler import ProjectDirectory
+
+from argparse import ArgumentParser
+import os
+import os.path
+
+def main( args ):
+    p = ProjectDirectory( args.pdpath )
+    ai = p.AlignmentInfo
+    ad = p.AllDiffs
+    hcd = p.HCDiffs
+
+    idents = ai._refs.keys()
+    if args.ref_name is not None:
+        idents = [ident for ident in idents if args.ref_name in ident]
+
+    for ref in idents:
+        print_baseinfo( ai, ref, args.variant_pos )
+        print_variantinfo( hcd, ad, ref, args.variant_pos )
+
+def print_variantinfo( hcd, ad, ref, pos ):
+        hc = True
+        try:
+            variants = ad['>'+ref]
+        except KeyError as e:
+            print "No HC or All Diffs for ref {}".format( ref )
+            return
+
+        found = False
+        for var in variants:
+            if var.start_pos == pos:
+                found = True
+                try:
+                    variants = hcd['>'+ref]
+                except KeyError as e:
+                    hc = False
+                if hc:
+                    print "High Quality Variant"
+                print "Freq: " + var.var_freq
+        if not found:
+            print "No Variant info found at pos {}".format( pos )
+
+def print_baseinfo( ai, ref, pos ):
+    try:
+        seqaligns = ai[ref]
+    except KeyError as e:
+        print "No Alignment Info for {}".format( pos )
+        return
+
+    for seq in seqaligns:
+        try:
+            bases = seq[pos]
+            print seq.name
+        except IndexError as e:
+            print "No Alignment info at pos {}".format( pos )
+            continue
+        for base in bases:
+            print "Pos: {}".format( base.pos )
+            print "Ref: {}".format( base.refb )
+            print "Cons: {}".format( base.consb )
+            print "Align Depth: {}".format( base.adepth )
+            print "Unique Depth: {}".format( base.udepth )
+
+def parse_args( ):
+    parser = ArgumentParser()
+
+    curdir = os.getcwd()
+    parser.add_argument( 'variant_pos', type=int, help='The variant position to display info for' )
+    parser.add_argument( 'ref_name', nargs='?', default=None, help='The identifier to limit the info for. Default is to show all identifiers' )
+    parser.add_argument( '-d', '--project_directory', dest='pdpath', default=curdir, help='GsProject directory path[Default:{}]'.format(curdir) )
+
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    args = parse_args()
+    main( args )

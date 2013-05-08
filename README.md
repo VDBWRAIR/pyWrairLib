@@ -19,6 +19,8 @@ Analysis
  * Merges a GsMapper project's 454AllContigs.fna and 454AllContigs.qual file into a single .fastq
 * genallrefstatus.sh
  * Legacy shell script that merges together all found 454RefStatus.txt files into a single output stream/file
+* variant_lookup
+ * Script to aid in the lookup of variant information
 
 Data
 ----
@@ -188,3 +190,43 @@ allcontig_to_allsample.py -p <gsproject> [-o <outputfile>]
 
 * gsproject is the path to a single Gs Project
 * outputfile is optional and should be a file to write the resulting fastq to. By default it is written to the terminal
+
+variant_lookup
+-------------------------
+
+Variant lookup looks up a position in a GsMapper alignment and displays the information about that variant
+You just have to provide the nucleotide position and optionally a unique portion of the reference you are looking for.
+
+If you do not provide the reference it will display all references for that alignment
+
+Usage
+-----
+
+```
+usage: variant_lookup [-h] [-d PDPATH] variant_pos [ref_name]
+
+positional arguments:
+  variant_pos           The variant position to display info for
+  ref_name              The identifier to limit the info for. Default is to
+                        show all identifiers
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d PDPATH, --project_directory PDPATH
+                        GsProject directory path[Default:Current working directory]
+```
+
+* variant_pos is the Nucleotide position of the alignment to look for the information for
+* ref_name only has to be a portion of the reference you are looking for. This is simply a filter
+  for all reference names in the alignment.
+  Example:
+    If the alignment has 3 references
+     Reference_ABCD
+     Reference_ACDE
+     Reference_1
+
+   Specifying Reference as the ref_name argument would yield all 3 references
+   Specifying ABCD would only yield Reference_ABCD
+   Specifying Reference_A woudl yield Reference_ABCD and Reference_ACDE
+* project_directory is only used if your current working directory is not a GsMapper project. It is easiest to invoke variant_lookup
+  by first changing directory to the GsMapper project you are wanting to work on.
