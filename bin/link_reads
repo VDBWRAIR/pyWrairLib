@@ -30,11 +30,17 @@ logger = logging.getLogger( 'link_reads' )
 def main( args ):
     link_reads_by_sample( args.inputdir, config['Paths']['READSBYSAMPLE_DIR'] )
 
+def default_dir( ):
+    # If demultiplexed in current directory, use that as default
+    if 'demultiplexed' in os.listdir( '.' ):
+        return os.path.join( os.getcwd(), 'demultiplexed' )
+    return os.getcwd()
+
 def getargs( ):
     parser = ArgumentParser( )
 
-    default_dir = os.path.join( os.getcwd() )
-    parser.add_argument( '-d', '--datadir', dest='inputdir', default=default_dir, help='Directory containing read data[Default: %s]' % default_dir )
+    default_ddir = default_dir()
+    parser.add_argument( '-d', '--datadir', dest='inputdir', default=default_ddir, help='Directory containing read data[Default: %s]' % default_ddir )
 
     args = parser.parse_args()
 
