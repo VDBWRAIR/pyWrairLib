@@ -21,14 +21,14 @@ import sys
 from argparse import ArgumentParser
 
 from wrairdata.structure import *
-from wrairlib.settings import config
+from wrairlib import settings
 
 # Grab the logger
 logging.basicConfig(level=settings.LOG_LEVEL, format='%(asctime)s -- %(name)s[%(levelname)s] -- %(message)s')
 logger = logging.getLogger( 'link_reads' )
 
 def main( args ):
-    link_reads_by_sample( args.inputdir, config['Paths']['READSBYSAMPLE_DIR'] )
+    link_reads_by_sample( args.inputdir, settings.config['Paths']['DataDirs']['READSBYSAMPLE_DIR'] )
 
 def default_dir( ):
     # If demultiplexed in current directory, use that as default

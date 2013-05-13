@@ -80,6 +80,7 @@ def link_read_by_sample( readfilepath, outputbase, matchpattern ):
     # Attempt the file pattern match
     m = matchpattern.match( readfile )
     if m is None:
+        logging.warning( "Name scheme used: {}".format( matchpattern.pattern ) )
         logging.warning( "Read file %s does not conform to the naming scheme in settings file." % readfile )
         logging.warning( "It will be skipped" )
         return

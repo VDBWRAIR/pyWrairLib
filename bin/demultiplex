@@ -42,7 +42,6 @@ from glob import glob
 import logging
 
 from wrairdata import settings
-from wrairdata.settings import config
 
 # Grab the logger
 logging.basicConfig(level=settings.LOG_LEVEL, format='%(asctime)s -- %(name)s[%(levelname)s] -- %(message)s')
@@ -51,8 +50,8 @@ logger = logging.getLogger( 'demultiplex' )
 thisdir = os.path.abspath( os.path.dirname( __file__ ) )
 importpath = os.path.dirname( os.path.dirname( thisdir ) )
 
-midparsedefault = config['Paths']['MIDPARSEDEFAULT']
-sfffiledefault = config['Paths']['SFFFILEDEFAULT']
+midparsedefault = settings.config['Paths']['MIDPARSEDEFAULT']
+sfffiledefault = settings.config['Paths']['SFFFILEDEFAULT']
 
 from wrairdata.demultiplex import *
 
