@@ -1,8 +1,11 @@
+import re
+
 import nose
+from configobj import ConfigObj
+
 from ..formatter import Formatter
 from ..schemes.generic import GenericNameFormatter
-
-from configobj import ConfigObj
+from wrairlib.settings import config
 
 class TestFormatter( object ):
     def defaultconfig( self ):
@@ -45,3 +48,15 @@ attr1_out_format = "{n1}|{n2}"
             assert False, "Did not raise AttributeError for missing section"
         except AttributeError as e:
             assert True
+
+class TestPlatformConfig( object ):
+    ''' Ensure config is ok '''
+    def setUp( self ):
+        from wrairlib.settings import path_to_config, parse_config
+        self.config = parse_config( path_to_config )
+        
+    def test_rif( self ):
+        ''' Make sure read in formats are compileable '''
+        for plat, formats in self.config['Platforms'].items():
+            rif = formats['read_in_format']
+            assert re.compile( rif )

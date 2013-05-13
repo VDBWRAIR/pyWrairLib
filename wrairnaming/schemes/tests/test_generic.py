@@ -141,7 +141,7 @@ class GenericNameFormatterTest( unittest.TestCase ):
             self.inst._get_format_attrs( {'bob':1, 'sally':2} )
             assert False, 'Failed to raise ValueError for invalid formatted dict keys'
         except ValueError as e:
-            assert str( e ) == 'Incorrect formats given', "should equal exception message: " + str( e )
+            assert 'Incorrect format given' in str( e ), "Expected Incorrect format given in exception message " + str( e )
 
     def test_invalidmissingin( self ):
         del self.mock_section['attr2_in_format']

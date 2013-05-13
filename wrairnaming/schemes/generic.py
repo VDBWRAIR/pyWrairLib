@@ -143,10 +143,11 @@ class GenericNameFormatter( object ):
         attributes = {}
         # Compile a list of attributes
         for k,v in formats.items():
+            # The names need to be name_in|out_whatever
             try:
                 name, inout, _ = k.split( '_' )
             except ValueError as e:
-                raise ValueError( "Incorrect formats given" )
+                raise ValueError( "Incorrect format given {}".format(k) )
             attrname = "%s_format" % name
             if attrname not in attributes:
                 attributes[attrname] = {}

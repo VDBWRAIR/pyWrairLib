@@ -1,14 +1,3 @@
-#!/usr/bin/env python
-
-##########################################################################
-##                       util.py
-##	Author: Tyghe Vallard						                        
-##	Date: 6/12/2012							                            
-##	Version: 1.0							                            
-##	Description:							                            
-##      Provides utility functions for various tasks
-##########################################################################
-
 import os
 import re
 import sys
@@ -20,6 +9,9 @@ from exceptions1 import *
 
 from wrairlib.VIRUS import GENES
 
+# This import is just here to move get_all_ to wrairdata.util
+from wrairdata.util import get_all_
+
 try:
     from Bio import SeqIO
     from Bio.SeqIO.QualityIO import PairedFastaQualIterator
@@ -30,25 +22,6 @@ except ImportError:
 
 # WRAIR common fasta extensions
 FASTA_EXTENSIONS = ['fasta','fna','fas']
-
-def get_all_( datadir, fmatch ):
-    '''
-        Given a datadir of read files locate all of them
-        using the fnmatch functions and return their abspath
-
-        >>> sf = get_all_( '../../ReadData/Sanger/2013_04_02/', '*.ab1' )
-        >>> len( sf )
-        33
-        >>> sf = get_all_( '../../ReadData/Sanger/2013_04_02/', '*.test' )
-        >>> len( sf )
-        0
-    '''
-    datadir = os.path.abspath( datadir )
-    logging.debug( "Getting all %s inside of %s" % (fmatch, datadir) )
-    files = [os.path.join( datadir, filename ) for filename in os.listdir( datadir )]
-    files = fnmatch.filter( files, fmatch )
-    logging.debug( "Found files: %s" % files )
-    return files
 
 def search_refs( refs, search_term, ext_only = None ):
     """

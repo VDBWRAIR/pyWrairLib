@@ -1,5 +1,6 @@
 from schemes.generic import GenericNameFormatter
 from configobj import ConfigObj
+from wrairlib.settings import config
 
 import os.path
 
@@ -9,21 +10,16 @@ class Formatter( object ):
     '''
         Simple wrapper around format.cfg ConfigObj
         Returns a GenericNameFormatter for any valid section
-
-        If config is None then the default path + '/config/formats.cfg' will be used
     '''
-    DEFAULT_CONF = ['config','settings.cfg']
-
-    def __init__( self, config=None ):
-        if config is None:
-            # I'm so confused about python package data files and the correct
-            #  way to handle them. So doing this
-            config = os.path.join( sys.prefix, *self.DEFAULT_CONF)
-            config = ConfigObj( config, interpolation='Template' )
+    def __init__( self, pconfig=None ):
+        # Use default config
+        if pconfig is None:
+            self.config = config
         # Make sure config is a valid configobj
-        if not isinstance( config, ConfigObj ):
-            config = ConfigObj( config, interpolation='Template' )
-        self.config = config
+        elif not isinstance( pconfig, ConfigObj ):
+            self.config = ConfigObj( pconfig, interpolation='Template' )
+        else:
+            self.config = pconfig
 
         self._formattercache = {}
 

@@ -7,8 +7,10 @@ import os.path
 import sys
 import re
 import logging
+from glob import glob
+from copy import deepcopy
 
-from settings import config
+from wrairlib.settings import config
 from util import *
 
 def determine_platform_from_path( datapath ):
@@ -16,44 +18,45 @@ def determine_platform_from_path( datapath ):
         Given a read data or raw data path extract the platform from it
         I.E: NGSData/ReadData/Sanger/2013_04_02 would return Sanger
     '''
-    # I guess abspath doesn't raise an error on an invalid path
     abs_datapath = os.path.abspath( datapath )
-    platform_pat = "(" + "|".join( config['DEFAULT']['platforms'] ) + ")"
+    platform_pat = "(" + "|".join( get_platforms().keys() ) + ")"
     m = re.search( platform_pat, abs_datapath )
     if m:
-        return m.groups( 0 )[0]
+        platform = m.groups(0)[0]
+        logging.debug( "Platform detected as: %s" % platform )
+        return platform
     else:
         raise ValueError( "%s does not have a valid platform in it" % datapath )
 
 def match_pattern_for_datadir( datadir ):
     ''' Determine platform from path then return key from dictionary '''
     platform = determine_platform_from_path( datadir )
-    return config[platform]['read_in_format']
+    pattern = config['Platforms'][platform]['read_in_format']
+    logging.debug( "Using file matching pattern: %s" % pattern )
+    return pattern
 
 def link_reads_by_sample( datadir, outputbase ):
     '''
-        Given an output directory with formatted read data
-        Link all read files into the READSBYSAMPLE_DIR
-        inside of the sample folder that they are for
+        Given a datadir with read files in it, link all valid
+        reads for the platform detected from its path into
+        outputbase. Each read file that is valid will have the samplename
+        extracted from its name and a directory created for it in outputbase
     '''
+    if not is_valid_abs_path( datadir, 'dir' ):
+        raise ValueError( "{} is not a valid abs path".format( datadir ) )
+    if not is_valid_abs_path( outputbase, 'dir' ):
+        raise ValueError( "{} is not a valid abs path".format( outputbase ) )
+
+    logging.debug( "Linking Reads from {} into {}".format( datadir, outputbase ) )
     # Get platform to determine how to fetch read files
     platform = determine_platform_from_path( datadir )
-    logging.debug( "Platform detected as: %s" % platform )
     # Fetch the correct pattern for the platform
     pattern = match_pattern_for_datadir( datadir )
-    logging.debug( "File matching pattern: %s" % pattern )
     # Compile the match pattern
     cpattern = re.compile( pattern )
 
-    if platform == 'Sanger':
-        link_sanger_by_sample( datadir, outputbase, cpattern )
-    else:
-        link_sffreads_by_sample( datadir, outputbase, cpattern )
-
-def link_sanger_by_sample( datadir, outputbase, cpattern ):
-    # Loop through all sanger files
-    for sf in get_all_( datadir, "*Sanger*" ):
-        link_read_by_sample( sf, outputbase, cpattern )
+    for read in get_all_( datadir, '*' ):
+        link_read_by_sample( read, outputbase, cpattern )
 
 def link_sffreads_by_sample( datadir, outputbase, cpattern ):
     # Loop through every sff file
@@ -96,7 +99,7 @@ def link_read_by_sample( readfilepath, outputbase, matchpattern ):
         logging.info( "Creating samplename directory %s" % samplenamedir )
         # let the exception be raised if it happens
         os.mkdir( samplenamedir )
-        make_readonly( samplenamedir )
+        set_config_perms( samplenamedir )
 
     if os.path.exists( dst ):
         logging.warning( "%s already exists. Skipping" % dst )
@@ -104,6 +107,56 @@ def link_read_by_sample( readfilepath, outputbase, matchpattern ):
         # Now symlink the file to the new destination
         logging.info( "Symlinking %s to %s" % (readfilepath, dst) )
         os.symlink( readfilepath, dst )
+
+def get_platforms( ):
+    return config['Platforms']
+
+def get_datadirs( ):
+    '''
+        Only get directories for raw and read data
+        ReadsBySample is not really a data dir
+    '''
+    dd = deepcopy( config['Paths']['DataDirs'] )
+    del dd['READSBYSAMPLE_DIR']
+    return dd
+
+def create_directory_structure( ):
+    '''
+        Create the entire NGS directory structure
+        using settings file
+    '''
+    create_ngs_dir()
+    for name, path in get_datadirs().items():
+        os.mkdir( path )
+        set_config_perms( path )
+        create_platform_dirs( path )
+    rbs = config['Paths']['DataDirs']['READSBYSAMPLE_DIR']
+    os.mkdir( rbs )
+    set_config_perms( rbs )
+
+def create_ngs_dir( ):
+    '''
+        Create NGS directory from settings file
+    '''
+    cdir = config['Paths']['NGSDATA_DIR']
+    logging.info( "Creating NGS Data Dir {}".format( cdir ) )
+    if os.path.isdir( cdir ):
+        logging.info( "NGS Dir {} already exists".format( cdir ) )
+        return
+    os.mkdir( cdir )
+    set_config_perms( cdir )
+
+def create_platform_dirs( basepath ):
+    '''
+        Given a path and a sequence of platforms,
+            create those directories inside of that path
+    '''
+    if not is_valid_abs_path( basepath ):
+        raise ValueError( "{} is not a valid absolute path".format( basepath ) )
+    platforms = get_platforms()
+    for plat, path in platforms.items():
+        logging.info( "Creating Platform directory {}".format( plat ) )
+        os.mkdir( os.path.join( basepath, plat ) )
 
 if __name__ == '__main__':
     import doctest
