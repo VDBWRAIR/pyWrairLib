@@ -115,8 +115,8 @@ def set_config_perms( path ):
     set_perms( path, perms, owner, group )
 
 def set_config_perms_recursive( path ):
-    set_config_perms( rootpath )
-    exec_recursive( rootpath, make_readonly )
+    set_config_perms( path )
+    exec_recursive( path, make_readonly )
     
 def make_readonly( path ):
     '''
