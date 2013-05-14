@@ -220,7 +220,7 @@ def main( ):
                 if idlecpu > 0:
                     cpu += 1
                     idlecpu -= 1
-                jobops = {'projectdir':project_directory, 'cpu': cpu, 'bam': True}
+                jobops = {'projectdir':project_directory, 'cpu': cpu, 'bam': True, 'numn': 0}
                 # If the sample has primers listed then set them to be trimmed
                 if sample.primers:
                     jobops.update( vt=sample.primers, tr=True, trim=True )
