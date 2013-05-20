@@ -13,29 +13,89 @@ from wrairnaming import Formatter
 
 from wrairlib.settings import config
 
+def is_valid_abs_path( path, pType='dir' ):
+    '''
+        Ensure path is absolute, valid and is pType
+        pType should be dir, link or file
+    '''
+    valid_ptype = ('dir','link','file')
+    ptype = pType.lower()
+
+    if ptype not in valid_ptype:
+        raise ValueError( '{} not in {}'.format(pType,valid_ptype) )
+
+    if not os.path.isabs( path ):
+        return False
+
+    return getattr( os.path, 'is' + ptype )( path )
+
+def abspath_or_error( path ):
+    ''' Convert to abs path and verify it or throw ValueError '''
+    path = os.path.abspath( path )
+    try:
+        os.stat( path )
+    except OSError as e:
+        raise ValueError( "{} is not a valid abs path".format(path) )
+    return path
+
 def get_all_( datadir, fmatch ):
     '''
-        Given a datadir of read files locate all of them
-        using the fnmatch functions and return their abspath
+        Get all files matching fmatch in datadir
+        Ensures datadir is a valid absolute path
     '''
     # Ensure path is abs
-    datadir = os.path.abspath( datadir )
-    if not is_valid_abs_path( datadir ):
-        raise ValueError( "{} is not a valid dir path".format( datadir ) )
-
+    datadir = abspath_or_error( datadir )
     logging.debug( "Getting all {} inside of {}".format(fmatch, datadir) )
     files = glob( os.path.join( datadir, fmatch ) )
     logging.debug( "Found files: %s" % files )
     return files
 
+def get_multiplexed_sffs( sdir ):
+    '''
+        Return all region multiplexed sff files from sdir
+        Returns only all uppercase and that have 2 digit preceding .sff
+        abs paths returned
+    '''
+    sdir = abspath_or_error( sdir )
+    sffs = get_all_( sdir, '*.sff' )
+    rsffs = []
+    for sff in sffs:
+        name,ext = os.path.splitext( os.path.basename( sff ) )
+        # Skip names that are not all uppercase
+        if name.upper() != name:
+            logging.debug( "Skipping {} because it is not completely uppercase".format( name ) )
+            continue
+        # Skip names that do not have 2 digits at the end
+        try:
+            int( name[-2:] )
+        except ValueError:
+            logging.debug( "Skipping {} because it does not contain a valid region number before the .sff".format(name) )
+            continue
+        rsffs.append( sff )
+    return rsffs
+
 def get_sff_files( sffdir ):
     '''
-        Given an directory path return all the sff files in that path as a dictionary keyed
-        by the numerical value just preceeding the .sff in the name
+        Return all multiplexed sff files in sffdir that are all Uppercase and have 2 digits preceding .sff
+        Returns a dictionary keyed by the 2 digits(converted to int so might only be 1 digit) and the values are the paths to the sff files
+
         Typically these are 454 SFF files from signal processing and represent a region each
     '''
     # The list of sff files
-    sff_files = {int(os.path.basename( sff )[-6:-4]):os.path.abspath( sff ) for sff in glob( sffdir + '/*.sff' )}
+    sffs = get_multiplexed_sffs( sffdir )
+    sff_files = {}
+    for sff in sffs:
+        name,ext = os.path.splitext( os.path.basename( sff ) )
+        try:
+            reg = int( name[-2:] )
+        except ValueError as e:
+            logging.critical( "{} cannot be parsed into a region integer".format( reg ) )
+            raise ValueError( "Ruhh Rohh Raggie. {} should not have been raised here".format( e ) )
+        if reg in sff_files:
+            logging.critical( "Compiled sff list so far {}".format( sff_files ) )
+            logging.critical( "Sff file that is throwing the exception: {}".format( sff ) )
+            raise ValueError( "There are more than 1 sff files for region {}.".format( reg ) )
+        sff_files[reg] = sff
     return sff_files
 
 def get_all_sff( outputdir ):
@@ -45,7 +105,7 @@ def get_all_sff( outputdir ):
         split up into sub lists of regions
     '''
     sff_files = {}
-    outputdir = os.path.abspath( outputdir )
+    outputdir = abspath_or_error( outputdir )
     for rdir in os.listdir( outputdir ):
         if os.path.isdir( os.path.join( outputdir, rdir ) ):
             logging.debug( "Compiling Region %s SFF files list" % rdir )
@@ -72,8 +132,11 @@ def runfile_to_sfffile_mapping( runfile ):
         sfffile -s splits into files with the following name pattern:
             454Reads.<mid>.sff
     '''
-    # Parse the runfile
-    rf = RunFile( open( runfile ) )
+    if isinstance( runfile, str ):
+        # Parse the runfile
+        rf = RunFile( open( runfile ) )
+    else:
+        rf = runfile
     # Start the mapping with just the regions split out
     mapping = {region:{} for region in rf.regions}
     # Root key should be by region
@@ -155,22 +218,6 @@ def set_perms( path, perms, uid=os.getuid(), gid=os.getgid(), recursive=False ):
 
 def set_perms_recursive( path, perms, uid=os.getuid(), gid=os.getgid() ):
     make_readonly_recursive( path )
-
-def is_valid_abs_path( path, pType='dir' ):
-    '''
-        Ensure path is absolute, valid and is pType
-        pType should be dir, link or file
-    '''
-    valid_ptype = ('dir','link','file')
-    ptype = pType.lower()
-
-    if ptype not in valid_ptype:
-        raise ValueError( '{} not in {}'.format(pType,valid_ptype) )
-
-    if not os.path.isabs( path ):
-        return False
-
-    return getattr( os.path, 'is' + ptype )( path )
 
 if __name__ == '__main__':
     import doctest

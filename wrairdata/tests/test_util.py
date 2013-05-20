@@ -7,7 +7,70 @@ from datetime import date
 from configobj import ConfigObj
 
 from .. import util
-from common import BaseClass, ere
+from common import BaseClass, ere, create
+import fixtures
+
+# Shortcuts
+gms = util.get_multiplexed_sffs
+gsf = util.get_sff_files
+class MultiplexedSffs( BaseClass ):
+    ''' Base class for multiplexed sff testing '''
+    def create_and_tst( self, func, sfflist, expectlist, createdir=None ):
+        ''' Create files in sfflist and then test '''
+        if createdir is None:
+            createdir = self.tempdir
+        for f in sfflist:
+            create( f )
+        sffs = func( createdir )
+        ere( expectlist, sffs )
+
+class TestMultiplexedSffs( MultiplexedSffs ):
+    ''' get_multiplexed_sffs tests '''
+    def test_lowercase( self ):
+        ''' Make sure lowercase are not returned '''
+        self.create_and_tst( gms, ['fake01.sff'], [] )
+
+    def test_singledigit( self ):
+        ''' Single digit files should not be returned '''
+        self.create_and_tst( gms, ['FAKE1.sff'], [] )
+
+    def test_mixedfiles( self ):
+        ''' Make sure only correctly formatted are returned '''
+        self.create_and_tst( gms, ['FAKE01.sff','fake01.sff'], [os.path.join( self.tempdir, 'FAKE01.sff' )] )
+
+    def test_emptysffdir( self ):
+        ''' Double check empty dir works '''
+        self.create_and_tst( gms, [], [] )
+
+    def test_correctamount( self ):
+        ''' Make sure the correct ammount are returned '''
+        sfflst = ["FAKE{:02}.sff".format(i) for i in range(1,4)]
+        expected = [os.path.abspath( sff ) for sff in sfflst]
+        self.create_and_tst( gms, sfflst, expected )
+
+class TestGetSffFiles( MultiplexedSffs ):
+    ''' get_sff_files tests '''
+    def test_lowercase( self ):
+        ''' Ensure lowercase are not returned '''
+        self.create_and_tst( gsf, ['fake1.sff'], [] )
+        
+    def test_singledigit( self ):
+        ''' Ensure 2 digits are enforced '''
+        self.create_and_tst( gsf, ['FAKE1.sff'], [] )
+
+    def test_mixedfiles( self ):
+        ''' Ensure only correctly named are returned in a mixed set '''
+        self.create_and_tst( gsf, ['FAKE01.sff','fake01.sff'], {1:os.path.join( self.tempdir, 'FAKE01.sff' )} )
+
+    def test_emptydir( self ):
+        ''' Just make sure empty dir returns empty dict '''
+        self.create_and_tst( gsf, [], [] )
+
+    def test_correct( self ):
+        ''' Test dir of all correctly named '''
+        sfflst = ["FAKE{:02}.sff".format(i) for i in range(1,4)]
+        expected = {int(os.path.splitext(sff)[0][-2:]):os.path.abspath(sff) for sff in sfflst}
+        self.create_and_tst( gsf, sfflst, expected )
 
 def fake_sff_dir( prefix='FAKE0', numsff=2 ):
     # Fake demultiplexed dir
@@ -180,3 +243,27 @@ class TestGetFile( BaseClass ):
         ere( [], util.get_all_( '.', '*' ) )
         open( 'file','w' ).close()
         ere( [], util.get_all_( '.', '*.txt' ) )
+
+def mock_sample( name, midkeyname, genotype, region, rf ):
+    s = Mock()
+    s.name = name
+    s.midkeyname = midkeyname
+    s.genotype = genotype
+    s.region = region
+    s.runfile = rf
+    return s
+
+class TestRunfileMapping( BaseClass ):
+    def test_correctmapping( self ):
+        runfile = Mock()
+        runfile.date = date( 2013, 05, 01 )
+        runfile.regions = [1,2]
+        runfile.platform = 'Roche454'
+        r1s1 = mock_sample( 'Sample1', 'RL1', 'pH1N1', 1, runfile )
+        r1s2 = mock_sample( 'Sample2', 'RL2', 'pH1N1', 1, runfile )
+        r2s1 = mock_sample( 'Sample1', 'RL1', 'pH1N1', 2, runfile )
+        r2s2 = mock_sample( 'Sample2', 'RL2', 'pH1N1', 2, runfile )
+        runfile.samples = [r1s1,r1s2,r2s1,r2s2]
+        result = util.runfile_to_sfffile_mapping( runfile )
+        expect = {1:{'454Reads.RL1.sff':'Sample1__1__RL1__2013_05_01__pH1N1.sff', '454Reads.RL2.sff':'Sample2__1__RL2__2013_05_01__pH1N1.sff'},2:{'454Reads.RL1.sff':'Sample1__2__RL1__2013_05_01__pH1N1.sff', '454Reads.RL2.sff':'Sample2__2__RL2__2013_05_01__pH1N1.sff'}}
+        ere( expect, result )

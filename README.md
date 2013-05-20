@@ -230,3 +230,37 @@ optional arguments:
    Specifying Reference_A woudl yield Reference_ABCD and Reference_ACDE
 * project_directory is only used if your current working directory is not a GsMapper project. It is easiest to invoke variant_lookup
   by first changing directory to the GsMapper project you are wanting to work on.
+
+
+sanger_to_fastq
+---------------
+
+Convert .ab1 files into various formats(by default fastq)
+!!!Untested Script!!!
+This script is under development and should be considered as such
+That being said, it seems to work fine giving it the -d and -t options together
+
+
+Usage
+-----
+
+```
+usage: sanger_to_fastq [-h] [-s SANGERFILE] [-d SANGERDIR] [-o OUTPUTFILE]
+                       [-t OUTPUTTYPE]
+
+Convert sanger .ab1 file to another type
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SANGERFILE, --sanger-file SANGERFILE
+                        Sanger file to convert
+  -d SANGERDIR, --sanger-dir SANGERDIR
+                        Directory containing sanger files
+  -o OUTPUTFILE, --output-file OUTPUTFILE
+                        The output filename. Omit an extension if you use the
+                        -t fasta+qual option.
+  -t OUTPUTTYPE, --output-type OUTPUTTYPE
+                        The output file type. Check out
+                        http://biopython.org/wiki/SeqIO for options. Use
+                        fasta+qual to get both fasta and qual files
+```

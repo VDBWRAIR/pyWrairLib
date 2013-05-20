@@ -8,9 +8,20 @@ import re
 import shutil
 
 def ere( expect, result ):
+    er( expect, result )
+    # Make sure lists are sorted for comparison
+    if isinstance( expect, list ):
+        expect = sorted( expect )
+        result = sorted( result )
+    assert expect == result
+
+def er( expect, result ):
     print "Expected: {}".format( expect )
     print "Result: {}".format( result )
-    assert expect == result
+
+def create( filepath ):
+    ''' Just create an empty file '''
+    open( filepath, 'w' ).close()
 
 class BaseClass( object ):
     def setUp( self ):
@@ -30,4 +41,3 @@ class BaseClass( object ):
         elif t == 'link':
             open( path+'link', 'w' ).close()
             os.symlink( path+'link', path )
-

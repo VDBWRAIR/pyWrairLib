@@ -1,96 +1,133 @@
 import os
 import os.path
 import sys
+from StringIO import StringIO
+import re
 
 from util import *
 
-def demultiplex( runfilepath, sffdir, outputdir=os.getcwd(), midparsefile='/opt/454/config/MidConfig.parse', sfffilecmd='/opt/454/bin/sfffile' ):
+class ReadList( object ):
+    ''' Read the output of sfffile -s '''
+    @classmethod
+    def _open( self, fh_fp ):
+        if isinstance( fh_fp, str ):
+            return open( fh_fp )
+        else:
+            return fh_fp
+
+    @classmethod
+    def parse( self, fh_fp ):
+        fh = ReadList._open( fh_fp )
+        cpat = re.compile( '^(?P<barcode>\S+):\s+(?P<numreads>\d+)\s+reads .*$' )
+        reads = {}
+        for line in fh:
+            line = line.strip()
+            m = cpat.match( line )
+            if m:
+                read = m.groupdict()
+                reads[read['barcode']] = read['numreads']
+        return reads
+
+def demultiplex( sffdir, outputdir, midparsefile, sfffilecmd ):
     '''
-        Given a runfilepath and a sffdir path
+        Given a sffdir path
         Demultiplex the all the sff files inside of sffdir
         Place them in outputdir or in current directory if not provided
 
-        Name each sff file outputed using the sample name from the runfile that matches the mid for the sample
+        Ensures outputdir exists(will create dirs all the way to it like mkdir -p)
+        Ensures sffdir is valid
 
-        Follows VDB_Sample_naming_Standards
+        Creates a directory for each sfffile region(last 2 digits before .sff in each sfffile)
 
-        >>> if os.path.exists( 'testoutput' ):
-        ...     shutil.rmtree( 'testoutput' )
-        >>> fp = '/home/EIDRUdata/NGSData/ReadData/Roche454/D_2013_03_13_13_56_26_vnode_signalProcessing'
-        >>> demultiplex( fp + '/meta/Runfile__FlxPlus__2013_03_12.txt', fp + '/sff', 'testoutput', '/home/EIDRUdata/NGSData/MidParse.conf' ) 
+        Returns dictionary keyed by each sfffile's name with a value of another dictionary
+            that is keyed by the barcode outputted by the command with value of how many reads were written
+            for that barcode
     '''
-    # Make outputdir if not exists
-    if not os.path.exists( outputdir ):
-        logging.info( "Creating output directory %s" % outputdir )
-        os.makedirs( outputdir )
-        make_readonly( outputdir )
+    # ensures sffdir is abspath
+    sffdir = abspath_or_error( sffdir )
 
     # Get the sff files indexed by their number
     sff_files = get_sff_files( sffdir )
 
-    # Try to open the runfile
-    try:
-        with open( runfilepath ) as fh:
-            # Run file instance
-            rf = RunFile( fh )
-            sffprocesses = []
-            # Make output region directories
-            for region in rf.regions:
-                # Make region output directory if it doesn't exist
-                region_dir = os.path.join( outputdir, str( region ) ) 
-                if not os.path.exists( region_dir ):
-                    logging.info( "Creating region output directory %s" % region_dir )
-                    os.mkdir( region_dir )
-                    make_readonly( region_dir )
-                else:
-                    logging.info( "Region output directory %s already exists" % region_dir )
-                # Demultiplex the sff file into that directory
-                p = demultiplex_sff( sff_files[region], midparsefile, sfffilecmd, os.path.join( outputdir, str( region ) ) )
-                # Keep track of our opened process and what sff file it is demultiplexing
-                sffprocesses.append( (p,sff_files[region]) )
+    if len( sff_files ) == 0:
+        logging.warning( "No sff files to demultiplex in {}".format(sffdir) )
+        return
 
-            # Should wait for both processes to finish
-            failed = False
-            for p, sfffile in sffprocesses:
-                stdout, stderr = p.communicate()
-                logging.info( stdout )
-                if stderr.strip():
-                    logging.error( '%s' % stderr )
-                    failed = True
+    # Make outputdir if not exists
+    if not os.path.exists( outputdir ):
+        logging.info( "Creating demultiplexed sff output directory {}".format(outputdir) )
+        os.makedirs( outputdir )
+        set_config_perms( outputdir )
 
-            if failed:
-                sys.stderr.write( "Some sff files faile to demultiplex. Check log file.\n" )
-                sys.exit( -1 )
-            else:
-                make_readonly_recursive( outputdir )
-                logging.info( "Demultiplex completed" )
-    except IOError as e:
-        sys.stderr.write( "Got %s while trying to open %s\n" % (runfilepath, e) )
-        logging.error( "Got %s while trying to open %s\n" % (runfilepath, e) )
+    # Loop through every region's sff files
+    sffprocesses = []
+    for region, sffpath in sff_files.items():
+        # Make region output directory if it doesn't exist
+        region_dir = os.path.join( outputdir, str( region ) ) 
+        if not os.path.exists( region_dir ):
+            logging.info( "Creating region output directory {}".format(region_dir) )
+            os.mkdir( region_dir )
+            set_config_perms( region_dir )
+        else:
+            logging.info( "Region output directory %s already exists" % region_dir )
 
-def demultiplex_sff( sfffile, midparsefile, sfffilecmd, outputdir=os.getcwd() ):
+        # Demultiplex the sff file into that directory
+        p = demultiplex_sff( sff_files[region], midparsefile, sfffilecmd, os.path.join( outputdir, str( region ) ) )
+        # Keep track of our opened process and what sff file it is demultiplexing
+        sffprocesses.append( (p,sff_files[region]) )
+
+    # Should wait for both processes to finish
+    failed = False
+    results = {}
+    for p, sfffile in sffprocesses:
+        stdout, stderr = p.communicate()
+        logging.info( stdout )
+        if stderr.strip():
+            logging.error( "{} failed to demultiplex with error: {}".format(sfffile, stderr) )
+            failed = True
+        else:
+            print sfffile
+            results[os.path.basename(sfffile)] = ReadList.parse( StringIO(stdout) )
+
+    if not failed:
+        set_config_perms_recursive( outputdir )
+        logging.info( "Demultiplex completed" )
+        return results
+    else:
+        return {}
+
+def demultiplex_sff( sfffile, midparsefile, sfffilecmd, outputdir ):
     '''
-        Run
+        sfffile - Actual sfffile to demultiplex
+        midparsefile - Config file mapping barcodes to barcode sequences
+        sfffilecmd - Path to sfffile command line utility
+        outputdir - Directory path to output sfffile command output
+
+        Same as running:
         cd outputdir
-        sfffile -mcf midparsefile -s sfffilepath
+        sfffile -mcf midparsefile sfffilepath
     '''
     cmdline = sfffilecmd.split() + ['-mcf', midparsefile, '-s', sfffile]
-    logging.info( "Running %s" % " ".join( cmdline ) )
+    logging.debug( "Running %s" % " ".join( cmdline ) )
     p = subprocess.Popen( cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=outputdir )
     return p
 
-def rename_demultiplexed_sffs( outputdir, runfile ):
+def rename_demultiplexed_sffs( demultiplexed_dir, runfile ):
     '''
-        Given an output directory from running demultiplex and a runfile
-        Rename all of the generated sff files using rename_sample_sff
-        so they have a more useful name
+        Given an output directory from running demultiplex and a runfile(demultiplexed_dir)
+         rename all of the demultiplexed files so that they conform to the naming standard in the
+         settings
+
+        Ensure demultiplexed_dir exists and is not empty
+        Ensure demultiplexed_dir contains regions(numerical dirs 1,2,3...) with demultiplexed reads(454Reads.<barcode>.sff)
+        Ensure runfile exists and is readable
     '''
     # Get all the sff files inside of the main output directory
-    all_sff = get_all_sff( outputdir )
-    logging.debug( "All sff files found inside of %s:\n%s" % (outputdir, all_sff) )
-    sff_mapping = runfile_to_sfffile_mapping( runfile )
-    logging.debug( "Mapping for sff file names:\n%s" % sff_mapping )
     rf = RunFile( open( runfile ) )
+    all_sff = get_all_sff( demultiplexed_dir )
+    logging.debug( "All sff files found inside of %s:\n%s" % (demultiplexed_dir, all_sff) )
+    sff_mapping = runfile_to_sfffile_mapping( rf )
+    logging.debug( "Mapping for sff file names:\n%s" % sff_mapping )
     # Loop through each region
     for region, sffs in all_sff.items():
         # Loop through every sfffile

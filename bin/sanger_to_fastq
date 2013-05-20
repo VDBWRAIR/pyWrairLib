@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+#########################################################################################
+## sanger_to_fastq
+## Author: Tyghe Vallard
+## Email: vallardt@gmail.com
+## Date: 2013/03/12
+## Version: 1.0
+## Purpose:
+##   Convert sanger ab1 sequence files into respective fasta + qual files
+##   In reality, you can convert to almost any file type Biopython will write to
+##   by using the -t option
+##
+## Requirements:
+##   - Biopython
+##
+#########################################################################################
+
+
+from Bio import SeqIO
+from argparse import ArgumentParser
+from glob import glob
+import os
+import os.path
+import sys
+
+def get_sangerfiles( dirpath ):
+    ''' Return sanger files in dirpath '''
+    return glob( os.path.join( dirpath, '*.ab1' ) )
+
+def convert_sangerfiles( sangerfiles, outputfile, outtype ):
+    ''' Convert a list of sanger files to fasta quality files '''
+    # Remove old file if it exists
+    if outputfile is not None and os.path.exists( outputfile ):
+        os.unlink( outputfile )
+
+    # Convert every sanger file
+    for sanger in sangerfiles:
+        seq = SeqIO.read( sanger, 'abi' )
+        try:
+            if not outputfile:
+                outfile, ext = os.path.splitext( os.path.basename( sanger ) )
+            else:
+                outfile, ext = os.path.splitext( os.path.basename( outputfile ) )
+
+            if outtype == 'fasta+qual':
+                usetype = 'fasta'
+                with open( outfile + '.qual', 'a' ) as fh:
+                    count = SeqIO.write( seq, fh, 'qual' )
+            else:
+                usetype = outtype
+
+            with open( outfile + '.' + usetype, 'a' ) as fh:
+                count = SeqIO.write( seq, fh, usetype )
+
+        except IOError as e:
+            sys.stderr.write( 'Failed to open %s with error %s' % (outputfile, e) )
+            break
+        
+
+def main( args ):
+    sangerfiles = []
+    if args.sangerdir:
+        sangerfiles = get_sangerfiles( args.sangerdir )
+    else:
+        sangerfiles = [args.sangerfile]
+
+    convert_sangerfiles( sangerfiles, args.outputfile, args.outputtype )
+
+def parse_args( ):
+    parser = ArgumentParser( description='Convert sanger .ab1 file to another type' )
+
+    parser.add_argument( '-s', '--sanger-file', dest='sangerfile', help='Sanger file to convert' )
+    parser.add_argument( '-d', '--sanger-dir', dest='sangerdir', help='Directory containing sanger files' )
+    parser.add_argument( '-o', '--output-file', dest='outputfile', default=None, help='The output filename. Omit an extension if you use the -t fasta+qual option.' )
+    parser.add_argument( '-t', '--output-type', dest='outputtype', default='fasta+qual', help='The output file type. Check out http://biopython.org/wiki/SeqIO for options. Use fasta+qual to get both fasta and qual files' )
+
+    args = parser.parse_args()
+
+    if args.sangerfile or args.sangerdir:
+        return args
+    else:
+        parser.error( "Need to specify -s or -d option" )
+
+if __name__ == '__main__':
+    main( parse_args() )
