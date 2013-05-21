@@ -265,5 +265,6 @@ class TestRunfileMapping( BaseClass ):
         r2s2 = mock_sample( 'Sample2', 'RL2', 'pH1N1', 2, runfile )
         runfile.samples = [r1s1,r1s2,r2s1,r2s2]
         result = util.runfile_to_sfffile_mapping( runfile )
-        expect = {1:{'454Reads.RL1.sff':'Sample1__1__RL1__2013_05_01__pH1N1.sff', '454Reads.RL2.sff':'Sample2__1__RL2__2013_05_01__pH1N1.sff'},2:{'454Reads.RL1.sff':'Sample1__2__RL1__2013_05_01__pH1N1.sff', '454Reads.RL2.sff':'Sample2__2__RL2__2013_05_01__pH1N1.sff'}}
+        mp = fixtures.MIDPREFIX
+        expect = {1:{'454Reads.'+mp+'RL1.sff':'Sample1__1__RL1__2013_05_01__pH1N1.sff', '454Reads.'+mp+'RL2.sff':'Sample2__1__RL2__2013_05_01__pH1N1.sff'},2:{'454Reads.'+mp+'RL1.sff':'Sample1__2__RL1__2013_05_01__pH1N1.sff', '454Reads.'+mp+'RL2.sff':'Sample2__2__RL2__2013_05_01__pH1N1.sff'}}
         ere( expect, result )

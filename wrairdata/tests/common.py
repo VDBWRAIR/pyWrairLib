@@ -6,6 +6,14 @@ import glob
 import fnmatch
 import re
 import shutil
+from difflib import context_diff
+
+def erdiff( expect, result ):
+    ''' Expects large strings that have newlines in both expect and result '''
+    cd = context_diff( expect.splitlines(True), result.splitlines(True) )
+    for line in cd:
+        sys.stdout.write( line )
+    assert expect == result
 
 def ere( expect, result ):
     er( expect, result )
@@ -16,8 +24,8 @@ def ere( expect, result ):
     assert expect == result
 
 def er( expect, result ):
-    print "Expected: {}".format( expect )
-    print "Result: {}".format( result )
+    print "Expected:\n----------\n{}\n------------\n".format( expect )
+    print "Result:\n---------\n{}\n------------\n".format( result )
 
 def create( filepath ):
     ''' Just create an empty file '''

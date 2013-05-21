@@ -10,7 +10,7 @@
 ##      Image Processing directory from a 454 Run(This directory has an sff directory
 ##       immediately inside of it)
 ##      The command run by demultiplex is:
-##          sfffile -s -mcf <MIDConfig.parse> sfffile
+##          sfffile -s <midlist> -mcf <MIDConfig.parse> sfffile
 ##      This command is run on each sfffile found(which should be 1 per region)
 ##      It creates a directory named after the region:
 ##      This creates a single sff file for each Midkey that has > 0 reads that match it
@@ -41,11 +41,10 @@ from argparse import ArgumentParser
 from glob import glob
 import logging
 
-from wrairdata import settings
+from wrairlib import settings
 
 # Grab the logger
-logging.basicConfig(level=settings.LOG_LEVEL, format='%(asctime)s -- %(name)s[%(levelname)s] -- %(message)s')
-logger = logging.getLogger( 'demultiplex' )
+logger = settings.setup_logger( name='demultiplex' )
 
 thisdir = os.path.abspath( os.path.dirname( __file__ ) )
 importpath = os.path.dirname( os.path.dirname( thisdir ) )
@@ -53,7 +52,7 @@ importpath = os.path.dirname( os.path.dirname( thisdir ) )
 midparsedefault = settings.config['Paths']['MIDPARSEDEFAULT']
 sfffiledefault = settings.config['Paths']['SFFFILEDEFAULT']
 
-from wrairdata.demultiplex import *
+from wrairdata import demultiplex
 
 def main( args ):
     # There is a bug here with dealing with the midparsefile
@@ -82,11 +81,11 @@ def main( args ):
     # Only do single operation if doboth is not set True
     if args.demultiplex or doboth:
         logger.info( "Starting the demultiplex operations" )
-        demultiplex( runfile, sffdir, outputdir, midparsefile, sfffilecmd )
+        demultiplex.demultiplex( sffdir, outputdir, runfile, midparsefile, sfffilecmd )
 
     if args.rename or doboth:
         logger.info( "Renaming demultiplexed sff files" )
-        rename_demultiplexed_sffs( outputdir, runfile )
+        demultiplex.rename_demultiplexed_sffs( outputdir, runfile )
 
 def getargs( ):
     parser = ArgumentParser( )

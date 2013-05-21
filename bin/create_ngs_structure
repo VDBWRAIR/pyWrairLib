@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser
+
+from wrairdata import structure
+from wrairlib import settings
+
+logger = settings.setup_logger( name='create_ngs_structure' )
+
+def main( args ):
+    if args.configpath is not None:
+        structure.config = settings.parse_config( args.configpath )
+    structure.create_directory_structure()
+    
+def parse_args( ):
+    parser = ArgumentParser()
+
+    parser.add_argument( '-c', '--config', dest='configpath', default=None, help='Path to config file' )
+
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    args = parse_args()
+    main( args )

@@ -43,25 +43,33 @@ from argparse import ArgumentParser
 from wrairlib.runfiletitanium import RunFile
 from wrairlib.util import get_all_
 
+from wrairlib import settings
+
 # Where is newbler installed
-newbler_install_path = '/home/EIDRUdata/programs/newbler_v2.8/bin'
+newbler_paths = None
+newbler_install_path = None
 
 # How many CPUs to use
-# Eidru has 24 so use 20 and leave some for other
-# processes
-numCPU=20
+numCPU=None
 
 # The directory to search for read data for a sample
-readsbysampledir="/home/EIDRUdata/NGSData/ReadsBySample"
+readsbysampledir = None
+logger = None
 
-# The log file to write to
-logfile="mapSamples.log"
+def global_setup( config ):
+    ''' Hack: Set global vars '''
+    global newbler_paths, newbler_install_path, numCPU, readsbysampledir, logger
+    # Where is newbler installed
+    newbler_paths = config['Paths']['Newbler']
+    newbler_install_path = os.path.join( newbler_paths['base'], 'bin' )
 
-# Grab the logger
-logging.basicConfig( level=logging.DEBUG, format='%(asctime)s -- %(name)s[%(levelname)s] -- %(message)s' )
+    # How many CPUs to use
+    numCPU=int( config['DEFAULT']['CPUS'] )
 
-logger = logging.getLogger( 'mapSamples' )
-logger.info( "Starting up" )
+    # The directory to search for read data for a sample
+    readsbysampledir = config['Paths']['DataDirs']['READSBYSAMPLE_DIR']
+    settings.config = config
+    logger = settings.setup_logger( 'mapSamples' )
 
 class FailedCommand( Exception ):
     def __init__( self, msg ):
@@ -161,7 +169,8 @@ def run_cmd( cmd, cwd ):
 def get_args( ):
     parser = ArgumentParser()
 
-    parser.add_argument( '--runfile', dest='runfile', required=True, help = 'Runfile path to use' )
+    parser.add_argument( dest='runfile', help = 'Runfile path to use' )
+    parser.add_argument( '-c', '--config', dest='configpath', default=None, help='Config file to use' )
 
     args = parser.parse_args()
     if check_args( args ):
@@ -174,8 +183,12 @@ def check_args( args ):
     return False
 
 def main( ):
+    global newbler_paths, newbler_install_path, numCPU, readsbysampledir, logger
     args = get_args()
-
+    if args.configpath is not None:
+        global_setup( settings.parse_config( args.configpath ) )
+    else:
+        global_setup( settings.config )
 
     runfile = args.runfile
     with open( runfile ) as fh:
@@ -201,7 +214,8 @@ def main( ):
             processes = int( numCPU / cpu_per_project )
 
         p = Pool( processes )
-        logger.info( "Starting a Pool of %s workers" % numCPU )
+        logger.info( "Starting a Pool of {} workers to process {} samples".format(numCPU,numSamples) )
+        logger.info( "Each sample's project will utilize {} cpus".format(cpu_per_project) )
 
         for sample in rf.samples:
             if not sample.disabled and sample.refgenomelocation:

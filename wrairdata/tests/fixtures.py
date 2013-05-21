@@ -8,8 +8,14 @@ MIDPARSE = os.path.join( FIXTURE_PATH, 'MidParse.conf' )
 DEMULTIPLEX_BY_REGION_PATH = os.path.join( FIXTURE_PATH, 'demultiplex_by_region' )
 RUNFILE_PATH = os.path.join( FIXTURE_PATH, 'RunfileFlxPlus_2013_05_01.txt' )
 
+with open( MIDPARSE ) as fh:
+    MIDPREFIX = fh.readlines()[0].strip()
+
 def demultiplex_reads_lst( ):
-    ''' Just return the .lst fixtures name.lst:{barcode:numreads} '''
+    '''
+        Just return the .lst fixtures name.lst:{barcode:numreads} 
+        from the output of sfffile -s
+    '''
     lsts = glob.glob( os.path.join( FIXTURE_PATH, '*.lst' ) )
     readlists = {}
     return {os.path.basename(lst):lst for lst in lsts}

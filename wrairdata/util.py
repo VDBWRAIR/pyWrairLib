@@ -11,7 +11,8 @@ import fnmatch
 from wrairlib.runfiletitanium import RunFile, RunFileSample
 from wrairnaming import Formatter
 
-from wrairlib.settings import config
+from wrairlib.settings import config, setup_logger
+logger = setup_logger( name=__name__ )
 
 def is_valid_abs_path( path, pType='dir' ):
     '''
@@ -45,9 +46,9 @@ def get_all_( datadir, fmatch ):
     '''
     # Ensure path is abs
     datadir = abspath_or_error( datadir )
-    logging.debug( "Getting all {} inside of {}".format(fmatch, datadir) )
+    logger.debug( "Getting all {} inside of {}".format(fmatch, datadir) )
     files = glob( os.path.join( datadir, fmatch ) )
-    logging.debug( "Found files: %s" % files )
+    logger.debug( "Found files: %s" % files )
     return files
 
 def get_multiplexed_sffs( sdir ):
@@ -63,13 +64,13 @@ def get_multiplexed_sffs( sdir ):
         name,ext = os.path.splitext( os.path.basename( sff ) )
         # Skip names that are not all uppercase
         if name.upper() != name:
-            logging.debug( "Skipping {} because it is not completely uppercase".format( name ) )
+            logger.debug( "Skipping {} because it is not completely uppercase".format( name ) )
             continue
         # Skip names that do not have 2 digits at the end
         try:
             int( name[-2:] )
         except ValueError:
-            logging.debug( "Skipping {} because it does not contain a valid region number before the .sff".format(name) )
+            logger.debug( "Skipping {} because it does not contain a valid region number before the .sff".format(name) )
             continue
         rsffs.append( sff )
     return rsffs
@@ -89,11 +90,11 @@ def get_sff_files( sffdir ):
         try:
             reg = int( name[-2:] )
         except ValueError as e:
-            logging.critical( "{} cannot be parsed into a region integer".format( reg ) )
+            logger.critical( "{} cannot be parsed into a region integer".format( reg ) )
             raise ValueError( "Ruhh Rohh Raggie. {} should not have been raised here".format( e ) )
         if reg in sff_files:
-            logging.critical( "Compiled sff list so far {}".format( sff_files ) )
-            logging.critical( "Sff file that is throwing the exception: {}".format( sff ) )
+            logger.critical( "Compiled sff list so far {}".format( sff_files ) )
+            logger.critical( "Sff file that is throwing the exception: {}".format( sff ) )
             raise ValueError( "There are more than 1 sff files for region {}.".format( reg ) )
         sff_files[reg] = sff
     return sff_files
@@ -108,7 +109,7 @@ def get_all_sff( outputdir ):
     outputdir = abspath_or_error( outputdir )
     for rdir in os.listdir( outputdir ):
         if os.path.isdir( os.path.join( outputdir, rdir ) ):
-            logging.debug( "Compiling Region %s SFF files list" % rdir )
+            logger.debug( "Compiling Region %s SFF files list" % rdir )
             region_sffs = []
             for sff in get_all_( os.path.join( outputdir, rdir ), '*.sff' ):
                 region_sffs.append( sff )
@@ -139,9 +140,12 @@ def runfile_to_sfffile_mapping( runfile ):
         rf = runfile
     # Start the mapping with just the regions split out
     mapping = {region:{} for region in rf.regions}
+    f = Formatter( config['Platforms'] )
+    f = getattr( f, runfile.platform )
     # Root key should be by region
     for sample in rf.samples:
-        mapping[sample.region]["454Reads.%s.sff" % sample.midkeyname] = demultiplex_sample_name( sample, rf.platform )
+        readname = f.rawread_format.output_format.format( midkey=sample.midkeyname )
+        mapping[sample.region][readname] = demultiplex_sample_name( sample, rf.platform )
     
     return mapping
 
@@ -204,14 +208,14 @@ def set_perms( path, perms, uid=os.getuid(), gid=os.getgid(), recursive=False ):
     if not isinstance( perms, int ):
         perms = int( perms, 8 )
         
-    logging.debug( "Changed permissions of %s to %s" % (path, perms) )
-    logging.debug( "Changed user:gid of %s to %s:%s" % (path, uid, gid) )
+    logger.debug( "Changed permissions of %s to %s" % (path, perms) )
+    logger.debug( "Changed user:gid of %s to %s:%s" % (path, uid, gid) )
 
     try:
         os.chmod( path, perms )
         os.chown( path, uid, gid )
     except OSError as e:
-        logging.warning( str(e) )
+        logger.warning( str(e) )
 
     if recursive:
         exec_recursive( path, set_perms, perms, uid, gid )

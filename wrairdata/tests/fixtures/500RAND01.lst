@@ -1,285 +1,53 @@
 Reading the input SFF file(s)...
 Generating the split SFF file(s)...
-  TI1:  0 reads found
-  TI2:  0 reads found
-  TI3:  0 reads found
-  TI4:  0 reads found
-  TI5:  0 reads found
-  TI6:  0 reads found
-  TI7:  0 reads found
-  TI8:  0 reads found
-  TI10:  0 reads found
-  TI11:  0 reads found
-  TI13:  0 reads found
-  TI14:  0 reads found
-  TI15:  0 reads found
-  TI16:  0 reads found
-  TI17:  0 reads found
-  TI18:  0 reads found
-  TI19:  0 reads found
-  TI20:  0 reads found
-  TI21:  0 reads found
-  TI22:  0 reads found
-  TI23:  0 reads found
-  TI24:  0 reads found
-  TI25:  0 reads found
-  TI26:  0 reads found
-  TI27:  0 reads found
-  TI28:  0 reads found
-  TI29:  0 reads found
-  TI30:  0 reads found
-  TI31:  0 reads found
-  TI32:  0 reads found
-  TI33:  0 reads found
-  TI34:  0 reads found
-  TI35:  0 reads found
-  TI36:  0 reads found
-  TI37:  0 reads found
-  TI38:  0 reads found
-  TI39:  0 reads found
-  TI40:  0 reads found
-  TI41:  0 reads found
-  TI42:  0 reads found
-  TI43:  0 reads found
-  TI44:  0 reads found
-  TI45:  0 reads found
-  TI46:  0 reads found
-  TI47:  0 reads found
-  TI48:  0 reads found
-  TI49:  0 reads found
-  TI50:  0 reads found
-  TI51:  0 reads found
-  TI52:  0 reads found
-  TI53:  0 reads found
-  TI54:  0 reads found
-  TI55:  0 reads found
-  TI56:  0 reads found
-  TI57:  0 reads found
-  TI58:  0 reads found
-  TI59:  0 reads found
-  TI60:  0 reads found
-  TI61:  0 reads found
-  TI62:  0 reads found
-  TI63:  0 reads found
-  TI64:  0 reads found
-  TI65:  0 reads found
-  TI66:  0 reads found
-  TI67:  0 reads found
-  TI68:  0 reads found
-  TI69:  0 reads found
-  TI70:  0 reads found
-  TI71:  0 reads found
-  TI72:  0 reads found
-  TI73:  0 reads found
-  TI74:  0 reads found
-  TI75:  0 reads found
-  TI76:  0 reads found
-  TI77:  0 reads found
-  TI78:  0 reads found
-  TI79:  0 reads found
-  TI80:  0 reads found
-  TI81:  0 reads found
-  TI82:  0 reads found
-  TI83:  0 reads found
-  TI84:  0 reads found
-  TI85:  0 reads found
-  TI86:  0 reads found
-  TI87:  0 reads found
-  TI88:  0 reads found
-  TI89:  0 reads found
-  TI90:  0 reads found
-  TI91:  0 reads found
-  TI92:  0 reads found
-  TI93:  0 reads found
-  TI94:  0 reads found
-  TI95:  0 reads found
-  TI96:  0 reads found
-  TI97:  0 reads found
-  TI98:  0 reads found
-  TI99:  0 reads found
-  TI100:  0 reads found
-  TI101:  0 reads found
-  TI102:  0 reads found
-  TI103:  0 reads found
-  TI104:  0 reads found
-  TI105:  0 reads found
-  TI106:  0 reads found
-  TI107:  0 reads found
-  TI108:  0 reads found
-  TI109:  0 reads found
-  TI110:  0 reads found
-  TI111:  0 reads found
-  TI112:  0 reads found
-  TI113:  0 reads found
-  TI114:  0 reads found
-  TI115:  0 reads found
-  TI116:  0 reads found
-  TI117:  0 reads found
-  TI118:  0 reads found
-  TI119:  0 reads found
-  TI120:  0 reads found
-  TI121:  0 reads found
-  TI122:  0 reads found
-  TI123:  0 reads found
-  TI124:  0 reads found
-  TI125:  0 reads found
-  TI126:  0 reads found
-  TI127:  0 reads found
-  TI128:  0 reads found
-  TI129:  0 reads found
-  TI130:  0 reads found
-  TI131:  0 reads found
-  TI132:  0 reads found
-  TI133:  0 reads found
-  TI134:  0 reads found
-  TI135:  0 reads found
-  TI136:  0 reads found
-  TI137:  0 reads found
-  TI138:  0 reads found
-  TI139:  0 reads found
-  TI140:  0 reads found
-  TI141:  0 reads found
-  TI142:  0 reads found
-  TI143:  0 reads found
-  TI144:  0 reads found
-  TI145:  0 reads found
-  TI146:  0 reads found
-  TI147:  0 reads found
-  TI148:  0 reads found
-  TI149:  0 reads found
-  TI150:  0 reads found
-  TI151:  0 reads found
-  TI152:  0 reads found
-  TI153:  0 reads found
-  RL1:  2 reads written into the SFF file.
-  RL2:  0 reads found
-  RL3:  27 reads written into the SFF file.
-  RL4:  3 reads written into the SFF file.
-  RL5:  116 reads written into the SFF file.
-  RL6:  5 reads written into the SFF file.
-  RL7:  8 reads written into the SFF file.
-  RL8:  42 reads written into the SFF file.
-  RL9:  7 reads written into the SFF file.
-  RL10:  48 reads written into the SFF file.
-  RL11:  0 reads found
-  RL12:  49 reads written into the SFF file.
-  RL13:  24 reads written into the SFF file.
-  RL14:  4 reads written into the SFF file.
-  RL15:  164 reads written into the SFF file.
-  RL16:  0 reads found
-  RL17:  0 reads found
-  RL18:  0 reads found
-  RL19:  0 reads found
-  RL20:  0 reads found
-  RL21:  0 reads found
-  RL22:  0 reads found
-  RL23:  0 reads found
-  RL24:  0 reads found
-  RL25:  0 reads found
-  RL26:  0 reads found
-  RL27:  0 reads found
-  RL28:  0 reads found
-  RL29:  0 reads found
-  RL30:  0 reads found
-  RL31:  0 reads found
-  RL32:  0 reads found
-  RL33:  0 reads found
-  RL34:  0 reads found
-  RL35:  0 reads found
-  RL36:  0 reads found
-  RL37:  0 reads found
-  RL38:  0 reads found
-  RL39:  0 reads found
-  RL40:  0 reads found
-  RL41:  0 reads found
-  RL42:  0 reads found
-  RL43:  0 reads found
-  RL44:  0 reads found
-  RL45:  0 reads found
-  RL46:  0 reads found
-  RL47:  0 reads found
-  RL48:  0 reads found
-  RL49:  0 reads found
-  RL50:  0 reads found
-  RL51:  0 reads found
-  RL52:  0 reads found
-  RL53:  0 reads found
-  RL54:  0 reads found
-  RL55:  0 reads found
-  RL56:  0 reads found
-  RL57:  0 reads found
-  RL58:  0 reads found
-  RL59:  0 reads found
-  RL60:  0 reads found
-  RL61:  0 reads found
-  RL62:  0 reads found
-  RL63:  0 reads found
-  RL64:  0 reads found
-  RL65:  0 reads found
-  RL66:  0 reads found
-  RL67:  0 reads found
-  RL68:  0 reads found
-  RL69:  0 reads found
-  RL70:  0 reads found
-  RL71:  0 reads found
-  RL72:  0 reads found
-  RL73:  0 reads found
-  RL74:  0 reads found
-  RL75:  0 reads found
-  RL76:  0 reads found
-  RL77:  0 reads found
-  RL78:  0 reads found
-  RL79:  0 reads found
-  RL80:  0 reads found
-  RL81:  0 reads found
-  RL82:  0 reads found
-  RL83:  0 reads found
-  RL84:  0 reads found
-  RL85:  0 reads found
-  RL86:  0 reads found
-  RL87:  0 reads found
-  RL88:  0 reads found
-  RL89:  0 reads found
-  RL90:  0 reads found
-  RL91:  0 reads found
-  RL92:  0 reads found
-  RL93:  0 reads found
-  RL94:  0 reads found
-  RL95:  0 reads found
-  RL96:  0 reads found
-  RL97:  0 reads found
-  RL98:  0 reads found
-  RL99:  0 reads found
-  RL100:  0 reads found
-  RL101:  0 reads found
-  RL102:  0 reads found
-  RL103:  0 reads found
-  RL104:  0 reads found
-  RL105:  0 reads found
-  RL106:  0 reads found
-  RL107:  0 reads found
-  RL108:  0 reads found
-  RL109:  0 reads found
-  RL110:  0 reads found
-  RL111:  0 reads found
-  RL112:  0 reads found
-  RL113:  0 reads found
-  RL114:  0 reads found
-  RL115:  0 reads found
-  RL116:  0 reads found
-  RL117:  0 reads found
-  RL118:  0 reads found
-  RL119:  0 reads found
-  RL120:  0 reads found
-  RL121:  0 reads found
-  RL122:  0 reads found
-  RL123:  0 reads found
-  RL124:  0 reads found
-  RL125:  0 reads found
-  RL126:  0 reads found
-  RL127:  0 reads found
-  RL128:  0 reads found
-  RL129:  0 reads found
-  RL130:  0 reads found
-  RL131:  0 reads found
-  RL132:  0 reads found
+  MIDRL1:  10 reads written into the SFF file.
+  MIDRL2:  10 reads written into the SFF file.
+  MIDRL3:  7 reads written into the SFF file.
+  MIDRL4:  11 reads written into the SFF file.
+  MIDRL5:  11 reads written into the SFF file.
+  MIDRL6:  5 reads written into the SFF file.
+  MIDRL7:  7 reads written into the SFF file.
+  MIDRL8:  11 reads written into the SFF file.
+  MIDRL9:  7 reads written into the SFF file.
+  MIDRL10:  7 reads written into the SFF file.
+  MIDRL11:  6 reads written into the SFF file.
+  MIDRL12:  9 reads written into the SFF file.
+  MIDRL13:  8 reads written into the SFF file.
+  MIDRL14:  15 reads written into the SFF file.
+  MIDRL15:  7 reads written into the SFF file.
+  MIDRL16:  22 reads written into the SFF file.
+  MIDRL17:  7 reads written into the SFF file.
+  MIDRL18:  11 reads written into the SFF file.
+  MIDRL19:  10 reads written into the SFF file.
+  MIDRL20:  17 reads written into the SFF file.
+  MIDRL21:  9 reads written into the SFF file.
+  MIDRL22:  7 reads written into the SFF file.
+  MIDRL23:  10 reads written into the SFF file.
+  MIDRL24:  5 reads written into the SFF file.
+  MIDRL25:  4 reads written into the SFF file.
+  MIDRL26:  9 reads written into the SFF file.
+  MIDRL27:  14 reads written into the SFF file.
+  MIDRL28:  8 reads written into the SFF file.
+  MIDRL29:  9 reads written into the SFF file.
+  MIDRL30:  4 reads written into the SFF file.
+  MIDRL31:  9 reads written into the SFF file.
+  MIDRL32:  7 reads written into the SFF file.
+  MIDRL33:  3 reads written into the SFF file.
+  MIDRL34:  7 reads written into the SFF file.
+  MIDRL35:  11 reads written into the SFF file.
+  MIDRL36:  6 reads written into the SFF file.
+  MIDRL37:  8 reads written into the SFF file.
+  MIDRL38:  12 reads written into the SFF file.
+  MIDRL39:  11 reads written into the SFF file.
+  MIDRL40:  10 reads written into the SFF file.
+  MIDRL41:  5 reads written into the SFF file.
+  MIDRL42:  15 reads written into the SFF file.
+  MIDRL43:  9 reads written into the SFF file.
+  MIDRL44:  9 reads written into the SFF file.
+  MIDRL45:  9 reads written into the SFF file.
+  MIDRL46:  9 reads written into the SFF file.
+  MIDRL47:  13 reads written into the SFF file.
+  MIDRL48:  14 reads written into the SFF file.
+  MIDRL49:  9 reads written into the SFF file.
+  MIDRL50:  26 reads written into the SFF file.
+  MIDRL51:  20 reads written into the SFF file.

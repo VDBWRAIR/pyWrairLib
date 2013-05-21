@@ -38,6 +38,22 @@ Misc/Undocumented
 Config Files
 ------------
 
+MidParse.conf
+-------------
+
+This file is used by the roche software to demultiplex sff files. The contents of the file contain a mapping
+between a name and a barcode sequence.
+The structure of the file is as follows
+```
+MID
+{
+mid = "MIDNAME1", "BARCODESEQUENCE", MISMATCHTOLERANCE, "OPTIONAL 3' Trim Sequence";
+mid = "MIDNAME2", "BARCODESEQUENCE", MISMATCHTOLERANCE, "OPTIONAL 3' Trim Sequence";
+}
+More information on this file can be found in the Roche documentation Part C under MIDConfig.parse
+An example file that can be used is included in the config directory
+```
+
 RunFile
 -------
 

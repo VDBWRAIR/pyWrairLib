@@ -35,3 +35,6 @@ nosetests.xml
 
 # Misc
 _version.py
+rungen500.sh
+wrairdata/tests/fixtures/Roche454*
+*.log

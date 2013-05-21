@@ -10,6 +10,9 @@ demultiplex_by_region='demultiplex_by_region'
 
 # Remove old dir if exists
 test -e ${demultiplex_by_region} && rm -rf ${demultiplex_by_region}
+rm 500*.sff
+
+sfffilecmd=/home/EIDRUdata/programs/newbler/bin/sfffile
 
 if [ "${rdir}x" == "x" ]
 then
@@ -19,9 +22,11 @@ fi
 
 for i in 1 2
 do
-    sfffile -pickr 500 -o 500RAND0${i}.sff ${rdir}/*0${i}.sff
+    $sfffilecmd -pickr 500 -o 500RAND0${i}.sff ${rdir}/*0${i}.sff
     mkdir -p ${demultiplex_by_region}/${i}
     pushd ${demultiplex_by_region}/${i}
-    sfffile -s -mcf ../../MidParse.conf ../../500RAND0${i}.sff 2>&1 | tee ../../500RAND0${i}.lst
+    mids=$(grep "^${i}" ../../RunfileFlxPlus_2013_05_01.txt | awk -F'	' '/^[0-9]/ {printf("%s,",$4)}' | sed 's/,$//')
+    echo "Mids: $mids"
+    $sfffilecmd -mcf ../../MidParse.conf -s ${mids} ../../500RAND0${i}.sff > ../../500RAND0${i}.lst
     popd
 done

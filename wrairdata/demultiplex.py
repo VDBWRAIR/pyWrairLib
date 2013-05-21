@@ -5,6 +5,9 @@ from StringIO import StringIO
 import re
 
 from util import *
+from wrairlib.settings import setup_logger
+
+logger = setup_logger( name=__name__ )
 
 class ReadList( object ):
     ''' Read the output of sfffile -s '''
@@ -28,7 +31,7 @@ class ReadList( object ):
                 reads[read['barcode']] = read['numreads']
         return reads
 
-def demultiplex( sffdir, outputdir, midparsefile, sfffilecmd ):
+def demultiplex( sffdir, outputdir, runfile, midparsefile, sfffilecmd ):
     '''
         Given a sffdir path
         Demultiplex the all the sff files inside of sffdir
@@ -49,13 +52,25 @@ def demultiplex( sffdir, outputdir, midparsefile, sfffilecmd ):
     # Get the sff files indexed by their number
     sff_files = get_sff_files( sffdir )
 
+    # if runfile is of type RunFile then just use it otherwise
+    # create an instance for it
+    print '------------'
+    print runfile
+    if runfile is None:
+        raise ValueError( "Runfile cannot be None" )
+    elif isinstance( runfile, RunFile ):
+        rf = runfile
+    else:
+        rf = RunFile( runfile )
+
     if len( sff_files ) == 0:
-        logging.warning( "No sff files to demultiplex in {}".format(sffdir) )
+        logger.warning( "No sff files to demultiplex in {}".format(sffdir) )
         return
 
     # Make outputdir if not exists
+    outputdir = os.path.abspath( outputdir )
     if not os.path.exists( outputdir ):
-        logging.info( "Creating demultiplexed sff output directory {}".format(outputdir) )
+        logger.info( "Creating demultiplexed sff output directory {}".format(outputdir) )
         os.makedirs( outputdir )
         set_config_perms( outputdir )
 
@@ -65,14 +80,17 @@ def demultiplex( sffdir, outputdir, midparsefile, sfffilecmd ):
         # Make region output directory if it doesn't exist
         region_dir = os.path.join( outputdir, str( region ) ) 
         if not os.path.exists( region_dir ):
-            logging.info( "Creating region output directory {}".format(region_dir) )
+            logger.info( "Creating region output directory {}".format(region_dir) )
             os.mkdir( region_dir )
             set_config_perms( region_dir )
         else:
-            logging.info( "Region output directory %s already exists" % region_dir )
+            logger.info( "Region output directory %s already exists" % region_dir )
+
+        # Get midlist for region
+        midlist = rf[region].keys()
 
         # Demultiplex the sff file into that directory
-        p = demultiplex_sff( sff_files[region], midparsefile, sfffilecmd, os.path.join( outputdir, str( region ) ) )
+        p = demultiplex_sff( sff_files[region], midparsefile, midlist, sfffilecmd, os.path.join( outputdir, str( region ) ) )
         # Keep track of our opened process and what sff file it is demultiplexing
         sffprocesses.append( (p,sff_files[region]) )
 
@@ -81,9 +99,9 @@ def demultiplex( sffdir, outputdir, midparsefile, sfffilecmd ):
     results = {}
     for p, sfffile in sffprocesses:
         stdout, stderr = p.communicate()
-        logging.info( stdout )
+        logger.info( stdout )
         if stderr.strip():
-            logging.error( "{} failed to demultiplex with error: {}".format(sfffile, stderr) )
+            logger.error( "{} failed to demultiplex with error: {}".format(sfffile, stderr) )
             failed = True
         else:
             print sfffile
@@ -91,24 +109,41 @@ def demultiplex( sffdir, outputdir, midparsefile, sfffilecmd ):
 
     if not failed:
         set_config_perms_recursive( outputdir )
-        logging.info( "Demultiplex completed" )
+        logger.info( "Demultiplex completed" )
         return results
     else:
         return {}
 
-def demultiplex_sff( sfffile, midparsefile, sfffilecmd, outputdir ):
+def sort_midlist( midlist ):
+    ''' Sort midlist by last digits '''
+    dkey = lambda x: int( re.search( '[0-9]+$', x ).group(0) )
+    return sorted( midlist, key=dkey )
+
+def demultiplex_sff( sfffile, midparsefile, midlist, sfffilecmd, outputdir ):
     '''
         sfffile - Actual sfffile to demultiplex
         midparsefile - Config file mapping barcodes to barcode sequences
+        midlist - List of midkey names inside of midparsefile to extract
         sfffilecmd - Path to sfffile command line utility
         outputdir - Directory path to output sfffile command output
 
         Same as running:
-        cd outputdir
-        sfffile -mcf midparsefile sfffilepath
+        sfffile -mcf midparse -s sfffile
     '''
-    cmdline = sfffilecmd.split() + ['-mcf', midparsefile, '-s', sfffile]
-    logging.debug( "Running %s" % " ".join( cmdline ) )
+    sfffile = abspath_or_error( sfffile )
+    midparsefile = abspath_or_error( midparsefile )
+    sfffilecmd = abspath_or_error( sfffilecmd )
+    if not os.path.abspath( outputdir ):
+        raise ValueError( "{} is not an absolute path".format(outputdir) )
+    if not midlist:
+        raise ValueError( "Midlist given to demultiplex_sff is empty" )
+    if not os.path.isdir( outputdir ):
+        os.mkdir( outputdir )
+    midlist = sort_midlist( midlist )
+    logger.debug( "Sorted Midlist {}".format( midlist ) )
+    midlist = ",".join( midlist )
+    cmdline = sfffilecmd.split() + ['-mcf', midparsefile, '-s', midlist, sfffile]
+    logger.debug( "Running %s" % " ".join( cmdline ) )
     p = subprocess.Popen( cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=outputdir )
     return p
 
@@ -125,9 +160,9 @@ def rename_demultiplexed_sffs( demultiplexed_dir, runfile ):
     # Get all the sff files inside of the main output directory
     rf = RunFile( open( runfile ) )
     all_sff = get_all_sff( demultiplexed_dir )
-    logging.debug( "All sff files found inside of %s:\n%s" % (demultiplexed_dir, all_sff) )
+    logger.debug( "All sff files found inside of %s:\n%s" % (demultiplexed_dir, all_sff) )
     sff_mapping = runfile_to_sfffile_mapping( rf )
-    logging.debug( "Mapping for sff file names:\n%s" % sff_mapping )
+    logger.debug( "Mapping for sff file names:\n%s" % sff_mapping )
     # Loop through each region
     for region, sffs in all_sff.items():
         # Loop through every sfffile
@@ -139,16 +174,16 @@ def rename_demultiplexed_sffs( demultiplexed_dir, runfile ):
 
             # If there was a mapping name
             if newfilename:
-                logging.debug( "Filename: %s -- Directory Containing Filename: %s -- New Filename: %s" % 
+                logger.debug( "Filename: %s -- Directory Containing Filename: %s -- New Filename: %s" % 
                     ( filename, outdir, newfilename)
                 )
                 newname = os.path.join( outdir, newfilename )
                 if os.path.lexists( newname ):
-                    logging.info( "Removing existing sff file %s" % newname )
+                    logger.info( "Removing existing sff file %s" % newname )
                     os.unlink( newname )
-                logging.info( "Linking %s to %s" % (sfffile, newname) )
+                logger.info( "Linking %s to %s" % (sfffile, newname) )
                 os.rename( sfffile, newname )
             # The runfile is incorrect if there is no mapping for
             # an sff file generated
             else:
-                logging.error( "No mapping key found for %s. Are all samples in the runfile?" % filename )
+                logger.error( "No mapping key found for %s. Are all samples in the runfile?" % filename )

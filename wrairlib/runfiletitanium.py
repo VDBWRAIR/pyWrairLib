@@ -4,6 +4,8 @@ import re
 from datetime import date
 from wrairnaming import Formatter
 
+from StringIO import StringIO
+
 class RunFile( object ):
     def __init__( self, handle ):
         """
@@ -60,6 +62,10 @@ class RunFile( object ):
             else:
                 self.add_sample( RunFileSample( row.strip(), self ) )
             count += 1
+        # Empty runfile
+        # Hack for testing: allows StringIO to be empty
+        if count == 0 and not isinstance( self.handle, StringIO ):
+            raise ValueError( "Empty Runfile" )
 
     def _parse_id_line( self, line ):
         """
@@ -156,12 +162,12 @@ class RunFileSample:
                 self.mismatchtolerance = int( s[4] )
             except ValueError as e:
                 raise ValueError( "Invalid mismatch tolerance given: %s" % s[4] )
-        if s[5] == 'VOID' or s[5] == 'User_defined_Reference':
+        if s[5].upper() == 'VOID' or 'user_defined' in s[5].lower():
             self.refgenomelocation = None
         else:
             self.refgenomelocation = s[5]
         self.uniquesampleid = s[6]
-        if s[7] == 'VOID' or s[7] == 'User_defined_Primer' or s[7] == '':
+        if s[7].upper() == 'VOID' or 'user_defined' in s[7].lower() or s[7] == '':
             self.primers = None
         else:
             self.primers = s[7]

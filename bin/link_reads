@@ -24,11 +24,14 @@ from wrairdata.structure import *
 from wrairlib import settings
 
 # Grab the logger
-logging.basicConfig(level=settings.LOG_LEVEL, format='%(asctime)s -- %(name)s[%(levelname)s] -- %(message)s')
-logger = logging.getLogger( 'link_reads' )
+logger = settings.setup_logger( 'link_reads' )
 
 def main( args ):
-    link_reads_by_sample( args.inputdir, settings.config['Paths']['DataDirs']['READSBYSAMPLE_DIR'] )
+    config = settings.config
+    if args.configpath is not None:
+        config = settings.parse_config( args.configpath )
+
+    link_reads_by_sample( args.inputdir, config['Paths']['DataDirs']['READSBYSAMPLE_DIR'] )
 
 def default_dir( ):
     # If demultiplexed in current directory, use that as default
@@ -40,7 +43,8 @@ def getargs( ):
     parser = ArgumentParser( )
 
     default_ddir = default_dir()
-    parser.add_argument( '-d', '--datadir', dest='inputdir', default=default_ddir, help='Directory containing read data[Default: %s]' % default_ddir )
+    parser.add_argument( dest='inputdir', default=default_ddir, help='Directory containing read data[Default: %s]' % default_ddir )
+    parser.add_argument( '-c', '--config', dest='configpath', default=None, help='Config file to use' )
 
     args = parser.parse_args()
 

@@ -93,7 +93,7 @@ class FormatScheme( object ):
                 raise KeyError()
             return self.name_output_format.format( **fileparts )
         except KeyError as e: # Gets thrown if fileparts is missing a key that the format expects
-            raise InvalidParts( "Expected %d file information fields. Got %d." % (self.num_output_fields, len( fileparts )) )
+            raise InvalidParts( "Expected %d file information fields for %s. Got %d." % (self.num_output_fields, self.output_format, len( fileparts )) )
 
     def __repr__( self ):
         return "FormatScheme( '{}', '{}' )".format( self.name_input_format.pattern, self.name_output_format )

@@ -10,6 +10,7 @@ import fnmatch
 from copy import deepcopy
 
 from common import BaseClass, ere
+import common
 
 from ..structure import *
 from .. import structure
@@ -80,6 +81,16 @@ class TestCreateDirStructure( SBaseClass ):
             expected=structure.config['Platforms'].keys()
             ere( expected, plats )
 
+    def test_dirsexist( self ):
+        ''' If directories exist then don't recreate them '''
+        structure.create_directory_structure()
+        try:
+            structure.create_directory_structure()
+            assert True
+        except OSError as e:
+            print e
+            assert False, "OSError raised when directories already exist"
+
 class TestDeterminePlatform( SBaseClass ):
     def setUp( self ):
         super( TestDeterminePlatform, self ).setUp()
@@ -148,17 +159,45 @@ class TestLinkReads( SBaseClass ):
             for read in rfs:
                 rpath = os.path.join( self.readdatadir, plat, read )
                 outpaths.append( rpath )
-                open( rpath , 'w' ).close()
+                common.create( rpath )
             # This should link all of the outpaths into the readsbysampledir
             platpath = os.path.join( self.readdatadir, plat )
             structure.link_reads_by_sample( platpath, self.readsbysampledir )
         print "Paths touched: {}".format(outpaths)
         # Now there should be directories for each read
         sampledirs = os.listdir( self.readsbysampledir )
-        ere( sorted(expected_dirs.keys()), sorted(sampledirs) )
+        ere( expected_dirs.keys(), sampledirs )
         for sample,expectedfiles in expected_dirs.items():
             resultfiles = os.listdir( os.path.join( self.readsbysampledir, sample ) )
-            ere( sorted( expectedfiles ), sorted( resultfiles ) )
+            ere( expectedfiles, resultfiles )
+
+    def test_linkreadsbysample_multidir( self ):
+        ''' Make sure a directory with directories containing reads works '''
+        structure.create_directory_structure()
+        plat = self.platforms[0]
+        platd = os.path.join( self.readdatadir, plat )
+        ddir = os.path.join( platd, 'demultiplexed' )
+        os.chdir( platd )
+        # Make some fake region dirs
+        os.makedirs( os.path.join( ddir, '1' ) )
+        os.makedirs( os.path.join( ddir, '2' ) )
+        rfs = ('sample_1.ab1','sample_1.sff','sample_1.fastq','sample_2.fastq','readme.txt')
+        fake_samples = {'1':rfs,'2':rfs}
+        # Populate fake regions
+        for reg, samples in fake_samples.items():
+            for sample in samples:
+                common.create( os.path.join( ddir, reg, reg+sample ) )
+            print os.listdir( os.path.join( ddir, reg ) )
+
+        structure.link_reads_by_sample( ddir, self.readsbysampledir )
+        os.chdir( self.readsbysampledir )
+        for reg, samples in fake_samples.items():
+            print os.listdir( self.readsbysampledir )
+            for sample in samples:
+                if 'readme.txt' in sample:
+                    continue
+                dname, ext = os.path.splitext( sample )
+                assert os.path.isdir( reg+dname ), "Read directory {} doesn't exist".format(reg+dname)
 
     def test_linkreadbysample_nonabs( self ):
         read_path = os.path.relpath( os.path.join( self.readdatadir, 'Plat1', 'sample_1.sff' ) )
