@@ -62,7 +62,7 @@ setup(
     ],
     scripts = scripts(),
     data_files = [
-        ('config',['config/settings.cfg',]),
+        ('config',['config/settings.cfg','config/MidParse.conf']),
     ],
     requires = [
         "xlwt",

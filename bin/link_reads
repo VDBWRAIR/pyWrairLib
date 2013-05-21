@@ -43,7 +43,7 @@ def getargs( ):
     parser = ArgumentParser( )
 
     default_ddir = default_dir()
-    parser.add_argument( dest='inputdir', default=default_ddir, help='Directory containing read data[Default: %s]' % default_ddir )
+    parser.add_argument( '-d', '--demultiplexed-dir', dest='inputdir', default=default_ddir, help='Directory containing read data[Default: %s]' % default_ddir )
     parser.add_argument( '-c', '--config', dest='configpath', default=None, help='Config file to use' )
 
     args = parser.parse_args()
