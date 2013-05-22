@@ -50,7 +50,7 @@ thisdir = os.path.abspath( os.path.dirname( __file__ ) )
 importpath = os.path.dirname( os.path.dirname( thisdir ) )
 
 midparsedefault = settings.config['Paths']['MIDPARSEDEFAULT']
-sfffiledefault = settings.config['Paths']['SFFFILEDEFAULT']
+sfffiledefault = settings.config['Paths']['Newbler']['sfffile']
 
 from wrairdata import demultiplex
 
