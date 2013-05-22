@@ -35,7 +35,7 @@ mkdir $analysispath
 
 demultiplexpath=${ngspath}/ReadData/Roche454/1979_01_01/demultiplexed
 test $? -eq 0 && demultiplex -o ${demultiplexpath} --mcf ${midparsepath} -s fixtures/ -r ${runfilepath}
-test $? -eq 0 && link_reads ${demultiplexpath} -c $settingspath
+test $? -eq 0 && link_reads -d ${demultiplexpath} -c $settingspath
 cd ${analysispath}
 test $? -eq 0 && mapSamples.py ${runfilepath} -c $settingspath
 ret=$?

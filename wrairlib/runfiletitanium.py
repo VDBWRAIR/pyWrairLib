@@ -1,7 +1,5 @@
-""" Represents a RunFile Titanium and hopefully listFiles for Valmik's Pipeline """
-
 import re
-from datetime import date
+from datetime import date, datetime
 from wrairnaming import Formatter
 
 from StringIO import StringIO
@@ -43,6 +41,7 @@ class RunFile( object ):
         """
         count = 0
         for row in self.handle:
+            #row = row.rstrip()
             # Get the headers
             if row.startswith( '!' ):
                 self.headers = row[1:].split( '\t' )
@@ -60,7 +59,7 @@ class RunFile( object ):
                 count += 1
                 continue
             else:
-                self.add_sample( RunFileSample( row.strip(), self ) )
+                self.add_sample( RunFileSample( row.strip(), self.date ) )
             count += 1
         # Empty runfile
         # Hack for testing: allows StringIO to be empty
@@ -72,14 +71,27 @@ class RunFile( object ):
             Parse Run File Id line # Run File ID: \S+
 
         """
-        m = re.match( "# Run File ID: (\d{2})(\d{2})(\d{4}).(\S+)", line )
+        # Date formats used to parse id line
+        supported_date_formats = ('%d%m%Y','%Y_%m_%d','%d_%m_%Y')
+        m = re.match( "# Run File ID: (\d{8}|\d+_\d+_\d+)\.(\S+)", line )
         if not m:
             raise ValueError( "Unkown Run File ID line -->%s" % line )
         pieces = m.groups()
         info = {}
-        # This will raise ValueError if parts are incorrect
-        info['date'] = date( int(pieces[2]), int(pieces[0]), int(pieces[1]) )
-        info['id'] = pieces[3]
+        
+        # Will be a parsed date or None indicating no match could be made
+        dt = None
+        for dformat in supported_date_formats:
+            try:
+                dt = datetime.strptime( pieces[0], dformat )
+                break
+            except ValueError:
+                continue
+
+        if dt is None:
+            raise ValueError( "{} is an invalid date string. Supported formats are {}".format(pieces[0], supported_date_formats) )
+        info['date'] = date( dt.year, dt.month, dt.day )
+        info['id'] = pieces[1]
         return info
 
     def _parse_regions_line( self, line ):
@@ -102,12 +114,79 @@ class RunFile( object ):
 
         return regions, rftype
 
-class RunFileSample:
-    def __init__( self, runfilerow, runfile ):
-        self.runfilerow = runfilerow
-        self.disabled = False
-        self._parse_sample_row( runfilerow )
-        self.runfile = runfile
+class RunFileSample(object):
+    SAMPLE_TEMPLATE = '{region}	{name}	{genotype}	{midkeyname}	{mismatchtolerance}	{refgenomelocation}	{uniquesampleid}	{primers}'
+    NULL_REFERENCE_STR = 'User_defined_Reference'
+    NULL_PRIMER_STR = 'User_defined_primers'
+    REQUIRED_KWARGS = ('region','name','genotype','midkeyname','mismatchtolerance')
+    OPTIONAL_KWARGS = (
+        ('refgenomelocation',NULL_REFERENCE_STR),
+        ('uniquesampleid',lambda x: getattr(x,'name')),
+        ('primers',NULL_PRIMER_STR),
+        ('disabled',False),
+    )
+    def __init__( self, *args, **kwargs ):
+        if len( kwargs ) == 0:
+            self.runfilerow = args[0]
+            self.disabled = False
+            self._parse_sample_row( self.runfilerow )
+            if not isinstance( args[1], date ):
+                raise ValueError( "{} is not a valid date object".format(args[1]) )
+            self.date = args[1]
+        else:
+            self._setup_kwargs( kwargs )
+
+    @property
+    def refgenomelocation( self ):
+        return self.__dict__['refgenomelocation']
+    @refgenomelocation.setter
+    def refgenomelocation( self, value ):
+        nullvalues = ('-','','VOID',None,self.NULL_REFERENCE_STR)
+        if value in nullvalues:
+            self.__dict__['refgenomelocation'] = None
+        else:
+            self.__dict__['refgenomelocation'] = value
+
+    @property
+    def date( self ):
+        return self.__dict__['date']
+    @date.setter
+    def date( self, value ):
+        if not isinstance( value, date ):
+            raise ValueError( "{} is not a valid date object".format(value) )
+        else:
+            self.__dict__['date'] = value
+
+    @property
+    def primers( self ):
+        return self.__dict__['primers']
+    @primers.setter
+    def primers( self, value ):
+        nullvalues = ('-','','VOID',None,self.NULL_PRIMER_STR)
+        if value in nullvalues:
+            self.__dict__['primers'] = None
+        else:
+            self.__dict__['primers'] = value
+
+    def _setup_kwargs( self, kwargs ):
+        ''' Handle kwargs '''
+        for kwarg in self.REQUIRED_KWARGS:
+            if kwarg not in kwargs:
+                raise ValueError( "Missing kwarg {}".format(kwarg) )
+        for kwarg, value in kwargs.items():
+            setattr( self, kwarg, value )
+        for oarg, default in self.OPTIONAL_KWARGS:
+            if oarg not in kwargs:
+                if callable( default ):
+                    default = default(self)
+                setattr( self, oarg, default )
+
+    def __setattr__( self, attr, value ):
+        ''' Just ensure attributes that are strings are stripped '''
+        if isinstance( value, str ):
+            value = value.strip()
+        # Call object's setattr otherwise descriptors won't be utilized
+        object.__setattr__( self, attr, value )
 
     def _parse_row( self, row ):
         if row.startswith( '!' ):
@@ -117,34 +196,16 @@ class RunFileSample:
         r"""
             Parse the given row and set
             instance properties
-
-            >>> rfs = RunFileSample( '1\tKDC0119A\tDengue2\tTI-MID1\t1\tVOID\tKDC0119A\tVOID', None )
-            >>> assert rfs.region == 1
-            >>> assert rfs.name == 'KDC0119A'
-            >>> assert rfs.genotype == 'Dengue2'
-            >>> assert rfs.midkeyname == 'TI-MID1'
-            >>> assert rfs.mismatchtolerance == 1
-            >>> assert rfs.refgenomelocation == None
-            >>> assert rfs.uniquesampleid == 'KDC0119A'
-            >>> assert rfs.primers == None
-            >>> assert rfs.disabled == False
-
-            >>> rfs = RunFileSample( '#1\tKDC0119A\tDengue2\tTI-MID1\t1\tVOID\tKDC0119A\tVOID', None )
-            >>> assert rfs.region == 1
-            >>> assert rfs.name == 'KDC0119A'
-            >>> assert rfs.genotype == 'Dengue2'
-            >>> assert rfs.midkeyname == 'TI-MID1'
-            >>> assert rfs.mismatchtolerance == 1
-            >>> assert rfs.refgenomelocation == None
-            >>> assert rfs.uniquesampleid == 'KDC0119A'
-            >>> assert rfs.primers == None
-            >>> assert rfs.disabled == True
         """
         # Should be tab delimeted
         s = row.split( '\t' )
 
         if len( s ) != 8:
-            raise ValueError( "Sample Row does not contain all necessary columns: %s" % s )
+            if len( s ) == 9 and s[8] == '':
+                # Extra tab at tend of line so just ignore it
+                s = s[:8]
+            else:
+                raise ValueError( "Sample Row does not contain all necessary columns: %s" % s )
 
         # Check for comment character
         if s[0].startswith( '#' ):
@@ -162,18 +223,17 @@ class RunFileSample:
                 self.mismatchtolerance = int( s[4] )
             except ValueError as e:
                 raise ValueError( "Invalid mismatch tolerance given: %s" % s[4] )
-        if s[5].upper() == 'VOID' or 'user_defined' in s[5].lower():
-            self.refgenomelocation = None
-        else:
-            self.refgenomelocation = s[5]
+        self.refgenomelocation = s[5]
         self.uniquesampleid = s[6]
-        if s[7].upper() == 'VOID' or 'user_defined' in s[7].lower() or s[7] == '':
-            self.primers = None
-        else:
-            self.primers = s[7]
+        self.primers = s[7]
 
     def __str__( self ):
-        return self.runfilerow
+        rstr = self.SAMPLE_TEMPLATE.format( **self.__dict__ )
+        rstr = rstr.replace( 'None', self.NULL_REFERENCE_STR, 1 )
+        rstr = rstr.replace( 'None', self.NULL_PRIMER_STR, 1 )
+        if self.disabled:
+            rstr = '#' + rstr
+        return rstr
 
     def __unicode__( self ):
         return self.__str__()

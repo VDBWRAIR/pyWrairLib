@@ -19,6 +19,7 @@ def scripts( ):
     return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' ) if not fnmatch( f, '*.swp' )]
 
 def set_version():
+    ''' Sets the version using the current tag and revision in the git repo '''
     if not os.path.isdir(".git"):
         print "This does not appear to be a Git repository."
         return
@@ -62,7 +63,7 @@ setup(
     ],
     scripts = scripts(),
     data_files = [
-        ('config',['config/settings.cfg','config/MidParse.conf']),
+        ('config', glob.glob( 'config/*' )),
     ],
     requires = [
         "xlwt",

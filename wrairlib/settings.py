@@ -24,7 +24,11 @@ def setup_logger( *args, **kwargs ):
     if 'name' not in kwargs:
         kwargs['name'] = args[0]
 
-    logging_config = config['Logging']
+    if 'config' in kwargs:
+        logging_config = kwargs['config']
+    else:
+        logging_config = config['Logging']
+
     logging_config['version'] = int( logging_config['version'] )
     logging.config.dictConfig( config['Logging'] )
     logger = logging.getLogger( 'wrair.' + kwargs['name'] )

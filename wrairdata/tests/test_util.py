@@ -210,7 +210,7 @@ class TestDemultiplexSampleName( object ):
         rf = Mock()
         rf.date = date( 1979, 1, 1 )
         s1 = Mock()
-        s1.runfile = rf
+        s1.date = date( 1979, 1, 1 )
         s1.name = 'Sample1'
         s1.midkeyname = 'TI001'
         s1.genotype = 'Virus'
@@ -244,25 +244,26 @@ class TestGetFile( BaseClass ):
         open( 'file','w' ).close()
         ere( [], util.get_all_( '.', '*.txt' ) )
 
-def mock_sample( name, midkeyname, genotype, region, rf ):
+def mock_sample( name, midkeyname, genotype, region, dt ):
     s = Mock()
     s.name = name
     s.midkeyname = midkeyname
     s.genotype = genotype
     s.region = region
-    s.runfile = rf
+    s.date = dt
     return s
 
 class TestRunfileMapping( BaseClass ):
     def test_correctmapping( self ):
         runfile = Mock()
-        runfile.date = date( 2013, 05, 01 )
+        d = date( 2013, 05, 01 )
+        runfile.date = d
         runfile.regions = [1,2]
         runfile.platform = 'Roche454'
-        r1s1 = mock_sample( 'Sample1', 'RL1', 'pH1N1', 1, runfile )
-        r1s2 = mock_sample( 'Sample2', 'RL2', 'pH1N1', 1, runfile )
-        r2s1 = mock_sample( 'Sample1', 'RL1', 'pH1N1', 2, runfile )
-        r2s2 = mock_sample( 'Sample2', 'RL2', 'pH1N1', 2, runfile )
+        r1s1 = mock_sample( 'Sample1', 'RL1', 'pH1N1', 1, d )
+        r1s2 = mock_sample( 'Sample2', 'RL2', 'pH1N1', 1, d )
+        r2s1 = mock_sample( 'Sample1', 'RL1', 'pH1N1', 2, d )
+        r2s2 = mock_sample( 'Sample2', 'RL2', 'pH1N1', 2, d )
         runfile.samples = [r1s1,r1s2,r2s1,r2s2]
         result = util.runfile_to_sfffile_mapping( runfile )
         mp = fixtures.MIDPREFIX

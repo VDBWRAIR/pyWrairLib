@@ -158,7 +158,7 @@ def demultiplex_sample_name( sample, platform ):
     return f.read_format.get_output_name(
         samplename=sample.name,
 		midkey=sample.midkeyname,
-		date=sample.runfile.date.strftime( '%Y_%m_%d' ),
+		date=sample.date.strftime( '%Y_%m_%d' ),
 		virus=sample.genotype,
         region=sample.region,
 		extension='sff'

@@ -57,7 +57,10 @@ readsbysampledir = None
 logger = None
 
 def global_setup( config ):
-    ''' Hack: Set global vars '''
+    '''
+        Hack: Set global vars
+        config should be an entire configobj object
+    '''
     global newbler_paths, newbler_install_path, numCPU, readsbysampledir, logger
     # Where is newbler installed
     newbler_paths = config['Paths']['Newbler']
@@ -68,13 +71,12 @@ def global_setup( config ):
 
     # The directory to search for read data for a sample
     readsbysampledir = config['Paths']['DataDirs']['READSBYSAMPLE_DIR']
-    settings.config = config
-    logger = settings.setup_logger( 'mapSamples' )
+    logger = settings.setup_logger( 'mapSamples', config=config['Logging'] )
 
 class FailedCommand( Exception ):
     def __init__( self, msg ):
         self.msg = msg
-        logging.critical( msg )
+        logger.error( msg )
     def __str__( self ):
         return self.msg
 
@@ -156,10 +158,10 @@ def run_newbler_cmd( cmd, projectdir ):
 
 def run_cmd( cmd, cwd ):
     # Open a new process for the command
-    logger.info( "Running command:" )
+    logger.debug( "Running command:" )
     cmd = " ".join( cmd )
-    logger.info( cmd )
-    logger.info( "from within %s" % cwd )
+    logger.debug( cmd )
+    logger.debug( "from within %s" % cwd )
     
     p = subprocess.Popen( cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd )
     # Wait for it to finish then return the stdout(which has stderr in it)
@@ -183,12 +185,13 @@ def check_args( args ):
     return False
 
 def main( ):
-    global newbler_paths, newbler_install_path, numCPU, readsbysampledir, logger
     args = get_args()
     if args.configpath is not None:
         global_setup( settings.parse_config( args.configpath ) )
+        logger.info( "Using config file {}".format( args.configpath ) )
     else:
         global_setup( settings.config )
+        logger.info( "Usinge default config file from settings" )
 
     runfile = args.runfile
     with open( runfile ) as fh:
@@ -247,7 +250,7 @@ def main( ):
                 failed_samples.append( (pdir, output) )
 
         for sample, err in failed_samples:
-            logger.info( "%s failed due to %s" % (sample, err) )
+            logger.error( "%s failed due to %s" % (sample, err) )
 
 if __name__ == '__main__':
     main()

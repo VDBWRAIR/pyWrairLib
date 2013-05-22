@@ -1,6 +1,6 @@
 # Roche454 Titanium sample list							
 # 2 Region PTP							
-# Run File ID: 05012013.2013_05_01_pH1N1DenAndDen4							
+# Run File ID: 01052013.2013_05_01_pH1N1DenAndDen4							
 !Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers
 1	Sample1	pH1N1	RL1	1	User_defined_Reference	Sample1	User_defined_primers
 1	Sample2	pH1N1	RL2	1	User_defined_Reference	Sample2	User_defined_primers

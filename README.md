@@ -73,6 +73,8 @@ Run files are simply a file that links a samplename to the following information
  * Fasta file of primers to trim off
 
 Listed below are [python template strings](http://docs.python.org/2/library/string.html#template-strings)
+that show you the template for creating a Runfile. Basically replace anything that has a dollar sign in front of
+it with a value
 
 RunFile Header
 --------------
@@ -83,6 +85,12 @@ RunFile Header
 # Run File ID: $date.$id
 !Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers	
 ```
+$platform would be replaced by Roche454 or IonTorrent
+$date needs to be a valid date string that is in one of the following formats
+ - DDMMYYYY
+ - DD_MM_YYYY
+ - YYYY_MM_DD
+$id is anything that does not contain a space character
 
 RunFile Sample Line
 -------------------
