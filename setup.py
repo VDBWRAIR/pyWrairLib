@@ -4,6 +4,7 @@ from distutils.core import setup
 from fnmatch import fnmatch
 import subprocess
 import sys
+import glob
 
 # The major.minor version number
 __version__ = 0
