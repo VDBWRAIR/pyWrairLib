@@ -38,6 +38,17 @@ Misc/Undocumented
 Config Files
 ------------
 
+settings.cfg
+------------
+
+This is the main configuration file that controls how all of the libraries and scripts intereact in the various pyWrairLib modules
+When pyWrairLib is installed this file is copied into a directory called config inside of the PYTHONHOME environmental variable
+You can see where this is by issuing
+```
+echo $PYTHONHOME
+```
+If nothing is displayed then you need to locate your system's default python home
+
 MidParse.conf
 -------------
 
