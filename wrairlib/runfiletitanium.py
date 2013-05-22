@@ -73,9 +73,10 @@ class RunFile( object ):
         """
         # Date formats used to parse id line
         supported_date_formats = ('%d%m%Y','%Y_%m_%d','%d_%m_%Y')
-        m = re.match( "# Run File ID: (\d{8}|\d+_\d+_\d+)\.(\S+)", line )
+        pat = "# Run File ID: (\d{8}|\d+_\d+_\d+)\.(\S+)"
+        m = re.match( pat, line )
         if not m:
-            raise ValueError( "Unkown Run File ID line -->%s" % line )
+            raise ValueError( "Run File ID line did not match pattern: {}".format( pat ) )
         pieces = m.groups()
         info = {}
         
