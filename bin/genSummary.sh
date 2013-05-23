@@ -63,22 +63,11 @@ then
     virus_names=$(awk -F'/' '/,/ {print $1}' ${gapdir}/all.gaps | sort | uniq)
     for virus in ${virus_names}
     do
-        seg_names=$(grep "^${virus}" ${gapdir}/all.gaps | cut -d'/' -f5 | cut -d',' -f1 | sort | uniq)
+        seg_names=$(grep "^${virus}" ${gapdir}/all.gaps | cut -d'/' -f5 | cut -d'|' -f1 | sort | uniq)
         for segname in ${seg_names}
         do
-            # First grep for
-            #  any lines beginning with the virus name(sample name lines)
-            #   -- or --
-            #  any lines with /<segment name,(gap/low coverage lines)
-            # Then grep for any lines with /<segment number, and also return the line just above them
-            # This gives 
-            # samplename
-            # gaps for segment
-            # Then join the lines together using xargs and remove the Reference part so that the line is
-            # sample,gaps low coverage
-            # The base name for each segment file <gene abbreviation>__<gene no>
-            segfile=${gapdir}/Segments/${virus}__${segname}
-            egrep "(.*__.*__.*)$|^${virus}.*/${segname}," Gaps/all.gaps | grep -B 1 "${segname}," | grep -v '\-\-' | xargs -n 2 | sed "s%\(.*__.*__.*\)\s.*/${segname},%\1,%" > ${segfile}.gaps
+            # Prepends sample name to gap line and removes reference name
+            egrep "(.*__.*__.*)$|^${virus}.*/${segname}\|" Gaps/all.gaps | grep -B 1 "${segname}|" | grep -v '\-\-' | xargs -n 2 | sed "s%\(.*__.*__.*\)\s.*/${segname}|%\1|%" > ${segfile}.gaps
 
             # Generate the Graphic
             if [ -e ${segfile}.gaps ]
