@@ -33,7 +33,8 @@ class RefStatusXLS:
 
     @property
     def x( self ):
-        if self._x == (len( self.sorted_refs ) ):
+        srl = len( self.sorted_refs )
+        if self._x == srl:
             self._x = 0
         else:
             self._x += 1
@@ -51,6 +52,8 @@ class RefStatusXLS:
         '''
             Sets a new project as the base for the next data writes
         '''
+        # Have to manually reset x to 0 since sorted_ref length will change
+        self._x = -1 
         pd = project
         self.proj_name = os.path.split( pd.basepath.rstrip( '/' ) )[1]
         self.refstat = pd.RefStatus
@@ -82,7 +85,9 @@ class RefStatusXLS:
         if style is None:
             style = self.ITALIC_WRAP
         # Place the data
-        self.sheet.write( self.y, self.x, value, style )
+        x = self.x
+        y = self.y
+        self.sheet.write( y, x, value, style )
 
     def _put_title( self ):
         ''' Write the title in the top left of this sheet '''

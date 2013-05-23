@@ -28,7 +28,8 @@ def get_gsdirs( path ):
             else:
                 # Umm?
                 raise e
-    return pdirs
+    sgsds = sorted( pdirs, key=lambda x: x.basepath.split('_')[-1] )
+    return sgsds
 
 def make_workbook( projdir, output, reference = None ):
     # The parent workbook
