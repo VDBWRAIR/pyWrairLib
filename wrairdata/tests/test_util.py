@@ -197,15 +197,6 @@ class Mock():
         self.__dict__[name] = value
     
 class TestDemultiplexSampleName( object ):
-    def setUp( self ):
-        # This is some wanky hack to fix a problem that I'm
-        # not sure why it is happening.
-        # the config changes from other tests are being seen here
-        # so this hack replaces the config for the util module
-        # with a very fresh version
-        from wrairlib.settings import path_to_config, parse_config
-        util.config = parse_config( path_to_config )
-
     def test_dsn( self ):
         rf = Mock()
         rf.date = date( 1979, 1, 1 )

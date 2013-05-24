@@ -2,22 +2,121 @@ import re
 from datetime import date, datetime
 from wrairnaming import Formatter
 
+import settings
+
 from StringIO import StringIO
 
 class RunFile( object ):
-    def __init__( self, handle ):
+    HEADER_TEMPLATE = '''# {platform} sample list
+# {numregions} Region {rtype}
+# Run File ID: {date:%Y_%m_%d}.{id}
+!Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers
+'''
+    REQUIRED_KWARGS = ('platform','date','samples')
+    OPTIONAL_KWARGS = (('rtype','PTP'),('id','Description'),('regions',lambda x: tuple([s.region for s in x.samples])))
+    supported_date_formats = ('%d%m%Y','%Y_%m_%d','%d_%m_%Y')
+    def __init__( self, *args, **kwargs ):
         """
-            Set the handle to the RunFile
+            Init a new RunFile instance given a file path or handle
+            -- or --
+            Init a new RunFile instance using required kwargs
+                Required:
+                - platform - Valid platform listed under Platforms in config file
+                - date - Date of the run this runfile is for
+                - samples - List of RunFileSamples
+                Optional:
+                - rtype - Run type. Not sure what this is exactly. Will use PTP as efault
+                - id - Description with no spaces in it. Will use 'Description' as default
+                - regions - Either a number of regions or a sequence of region numbers. Will gather from sample list
         """
-        if isinstance( handle, str ):
-            handle = open( handle )
-        self.handle = handle
-        self.regions = []
+        # Set up inst vars
+        self.regions = (1,)
         self.id = ""
-        self._samples = []
         self.samples_by_region = {}
         self.headers = []
-        self._parse()
+        self.rtype = ''
+        #self.platform = ''
+
+        # Parse input file/path
+        if len( kwargs ) == 0 and len( args ) >= 1:
+            if len( args ) == 2:
+                autoparse = bool(args[1])
+            else:
+                autoparse = True
+            handle = args[0]
+            if isinstance( handle, str ):
+                handle = open( handle )
+            self.handle = handle
+            if autoparse:
+                self.parse()
+        else:
+            self._set_kwargs( kwargs )
+
+    @property
+    def regions( self ):
+        return self.__dict__.get( 'regions', () )
+    @regions.setter
+    def regions( self, value ):
+        if type( value ) in (int,str):
+            try:
+                value = int( value )
+                # Make sure value is not 0
+                if value == 0:
+                    raise ValueError( "0 is not a valid amount of regions" )
+                value = tuple( range( 1, value + 1) )
+            except ValueError:
+                # Will get thrown below
+                value = None
+        elif isinstance( value, list ):
+            value = tuple( value )
+
+        if isinstance( value, tuple ) and len( value ) > 0:
+            regions = tuple( [int(v) for v in value] )
+            self.__dict__['regions'] = regions
+            self.numregions = len( regions )
+        else:
+            raise ValueError( "{} is not a valid amount of regions. Regions should be an int or sequence of ints".format(value) )
+
+    def _set_kwargs( self, kwargs ):
+        for kwa in self.REQUIRED_KWARGS:
+            if kwa == 'samples':
+                if len( kwargs['samples'] ) == 0:
+                    raise ValueError( "Need to supply list of samples instead of {}".format(kwargs['samples']) )
+                [self.add_sample( s ) for s in kwargs['samples']]
+                continue
+            if kwa == 'date':
+                self.date = self._parse_date( kwargs[kwa] )
+                continue
+            try:
+                setattr( self, kwa, kwargs[kwa] )
+            except KeyError:
+                raise ValueError( "Missing kwarg {}".format( kwa ) )
+
+        for kwa, default in self.OPTIONAL_KWARGS:
+            if kwa in kwargs:
+                setattr( self, kwa, kwargs[kwa] )
+            else:
+                if callable( default ):
+                    default = default(self)
+                setattr( self, kwa, default )
+
+    def validate( self ):
+        ''' Just ensure all args were setattr'd not null '''
+        for kwa in self.REQUIRED_KWARGS + self.OPTIONAL_KWARGS:
+            if isinstance( kwa, tuple ):
+                kwa = kwa[0]
+            if not getattr( self, kwa ):
+                raise ValueError( "{} has not been set".format( kwa ) )
+
+    def format_header( self ):
+        ''' Return the header portion subsituting in instance variable values '''
+        self.validate()
+        return self.HEADER_TEMPLATE.format( **self.__dict__ )
+
+    def __str__( self ):
+        ''' Return a string representing this runfile instance that could be written to a file '''
+        hdr = self.format_header()
+        return hdr + "\n".join( [s.__str__() for s in self.samples] )
 
     @property
     def samples( self ):
@@ -35,7 +134,25 @@ class RunFile( object ):
             self.samples_by_region[rfsample.region] = {}
         self.samples_by_region[rfsample.region][rfsample.midkeyname] = rfsample
 
-    def _parse( self ):
+    @property
+    def platform( self ):
+        return self.__dict__.get( 'platform', None )
+
+    @platform.setter
+    def platform( self, value ):
+        ''' Ensure valid platform '''
+        value = value.strip()
+        valid = False
+        for plat in settings.config['Platforms'].keys():
+            if value.lower() == plat.lower():
+                self.__dict__['platform'] = plat
+                valid = True
+                break
+        if not valid:
+            print settings.config['Platforms'].keys()
+            raise ValueError( "{} is not a supported platform in settings file".format(value) )
+
+    def parse( self ):
         """
             Parse the file into the important pieces
         """
@@ -50,7 +167,7 @@ class RunFile( object ):
                 count += 1
                 continue
             elif count == 1:
-                self.regions, self.type = self._parse_regions_line( row )
+                self.regions, self.rtype = self._parse_regions_line( row )
             elif count == 2:
                 stuff = self._parse_id_line( row )
                 self.id = stuff['id']
@@ -66,32 +183,36 @@ class RunFile( object ):
         if count == 0 and not isinstance( self.handle, StringIO ):
             raise ValueError( "Empty Runfile" )
 
+    def _parse_date( self, dtstr ):
+        # Will be a parsed date or None indicating no match could be made
+        dt = None
+        for dformat in self.supported_date_formats:
+            try:
+                dt = datetime.strptime( dtstr, dformat )
+                break
+            except ValueError:
+                continue
+
+        if dt is None:
+            raise ValueError( "{} is an invalid date string. Supported formats are {}".format(dtstr, self.supported_date_formats) )
+
+        return date( dt.year, dt.month, dt.day )
+
     def _parse_id_line( self, line ):
         """
             Parse Run File Id line # Run File ID: \S+
 
         """
         # Date formats used to parse id line
-        supported_date_formats = ('%d%m%Y','%Y_%m_%d','%d_%m_%Y')
         pat = "# Run File ID: (\d{8}|\d+_\d+_\d+)\.(\S+)"
         m = re.match( pat, line )
         if not m:
-            raise ValueError( "Run File ID line did not match pattern: {}".format( pat ) )
+            raise ValueError( "Run File ID line({}) did not match pattern: {}".format( line, pat ) )
         pieces = m.groups()
         info = {}
         
-        # Will be a parsed date or None indicating no match could be made
-        dt = None
-        for dformat in supported_date_formats:
-            try:
-                dt = datetime.strptime( pieces[0], dformat )
-                break
-            except ValueError:
-                continue
+        info['date'] = self._parse_date( pieces[0] )
 
-        if dt is None:
-            raise ValueError( "{} is an invalid date string. Supported formats are {}".format(pieces[0], supported_date_formats) )
-        info['date'] = date( dt.year, dt.month, dt.day )
         info['id'] = pieces[1]
         return info
 
@@ -106,9 +227,6 @@ class RunFile( object ):
 
         # Create a tuple of regions
         regions = int( m[0] )
-        if regions == 0:
-            raise ValueError( "0 is not a valid amount of regions" )
-        regions = tuple( range( 1, regions + 1) )
 
         # The Region Type
         rftype = m[1]

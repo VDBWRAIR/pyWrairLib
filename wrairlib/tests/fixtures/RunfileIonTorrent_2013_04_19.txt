@@ -1,0 +1,15 @@
+# IonTorrent sample list								
+# 1 Region PTP								
+# Run File ID: 2013_04_19.PGM.CPTLin
+!Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers	
+1	D1_FST2432	Den1	IX001	0	User_defined_Reference	D1_FST2432	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna
+1	D1_FST2410	Den1	IX002	0	User_defined_Reference	D1_FST2410	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna
+1	D1_FST2421	Den1	IX003	0	User_defined_Reference	D1_FST2421	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna
+1	D2_Vero_WHO_S16803	Den2	IX004	0	User_defined_Reference	D2_Vero_WHO_S16803	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den2.fna
+1	D2_Vero_PM_S16803	Den2	IX005	0	User_defined_Reference	D2_Vero_PM_S16803	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den2.fna
+1	D2_PDK50_EPK_Plasmid_S16803	Den2	IX006	0	User_defined_Reference	D2_PDK50_EPK_Plasmid_S16803	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den2.fna
+1	D2_KH0077A	Den2	IX007	0	User_defined_Reference	D2_KH0077A	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den2.fna
+1	D3_3805	Den3	IX008	0	User_defined_Reference	D3_3805	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den3.fna
+1	D3_KDC0059A	Den3	IX009	0	User_defined_Reference	D3_KDC0059A	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den3.fna
+1	D_01639_04	Den4	IX010	0	User_defined_Reference	D_01639_04	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den4.fna
+1	D4_02207_03	Den4	IX011	0	User_defined_Reference	D4_02207_03	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den4.fna

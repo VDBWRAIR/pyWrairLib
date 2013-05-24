@@ -8,18 +8,22 @@ import sys
 from glob import glob
 import fnmatch
 from copy import deepcopy
+import re
 
+from nose.tools import eq_
 from common import BaseClass, ere
 import common
 
-from ..structure import *
+#from ..structure import *
 from .. import structure
+
 class SBaseClass( BaseClass ):
     def setUp( self ):
         super( SBaseClass, self ).setUp()
-        # Changing the config the way that it is done is residual so we deepcopy it
-        # and restore it on teardown
-        self.orig_config = deepcopy( structure.config )
+        # This effectively decouples the structure.config from the
+        # main config by moving the internal reference to a deepcopied version
+        config_copy = deepcopy( structure.config )
+        structure.config = config_copy
         self.ngsdir = os.path.join( self.tempdir, 'ngsdir' )
         self.readsbysampledir = os.path.join( self.ngsdir, 'readsbysample' )
         self.rawdatadir = os.path.join( self.ngsdir, 'rawdatadir' )
@@ -43,9 +47,17 @@ class SBaseClass( BaseClass ):
         structure.config['Paths'] = self.struct_config['Paths']
         structure.config['Platforms'] = self.struct_config['Platforms']
 
-    def tearDown( self ):
-        super( SBaseClass, self ).tearDown()
-        structure.config = self.orig_config
+    @classmethod
+    def ignoretearDownClass( self ):
+        # I'm still a bit baffled by this
+        from wrairlib import settings
+        orig_config = settings.parse_config( settings.path_to_config )
+        # It seems I have to change this for settings but not structure, but
+        # i do both just to make sure
+        structure.config = orig_config
+        settings.config = orig_config
+        eq_( settings.config, structure.config )
+        eq_( settings.config, orig_config )
 
 class TestCreateDirStructure( SBaseClass ):
     def setUp( self ):
@@ -72,14 +84,14 @@ class TestCreateDirStructure( SBaseClass ):
         assert os.path.isdir( self.ngsdir )
         for name, path in structure.config['Paths']['DataDirs'].items():
             if name == 'READSBYSAMPLE_DIR':
-                ere( True, os.path.isdir( path ) )
+                eq_( True, os.path.isdir( path ) )
                 result = os.listdir( path )
                 expected = []
-                ere( expected, result )
+                eq_( expected, result )
                 continue
             plats = os.listdir( path )
             expected=structure.config['Platforms'].keys()
-            ere( expected, plats )
+            eq_( expected, plats )
 
     def test_dirsexist( self ):
         ''' If directories exist then don't recreate them '''
@@ -101,8 +113,8 @@ class TestDeterminePlatform( SBaseClass ):
     def tst_detect_platform( self, path ):
         for platform in self.platforms:
             chkpath = path.format( platform )
-            detected_plat = determine_platform_from_path( chkpath )
-            ere( platform, detected_plat )
+            detected_plat = structure.determine_platform_from_path( chkpath )
+            eq_( platform, detected_plat )
 
     def test_dpfp_relpathbasename( self ):
         ''' Make sure all platforms can be pulled out of rel paths that are basedirs'''
@@ -123,10 +135,10 @@ class TestDeterminePlatform( SBaseClass ):
                 path = os.path.join( plat_path, '1979_01_01' )
                 os.mkdir( path )
                 os.chdir( plat_path )
-                detected_plat = determine_platform_from_path( '1979_01_01' )
-                ere( platform, detected_plat )
-                detected_plat = determine_platform_from_path( '.' )
-                ere( platform, detected_plat )
+                detected_plat = structure.determine_platform_from_path( '1979_01_01' )
+                eq_( platform, detected_plat )
+                detected_plat = structure.determine_platform_from_path( '.' )
+                eq_( platform, detected_plat )
 
     def test_dpfp_abspathbasename( self ):
         self.tst_detect_platform( '/abspath/{}' )
@@ -137,7 +149,7 @@ class TestDeterminePlatform( SBaseClass ):
     def test_dpfp_missingplatform( self ):
         for platform in self.platforms:
             try:
-                determine_platform_from_path( '/some/path' )
+                structure.determine_platform_from_path( '/some/path' )
                 assert False, "Missing platform did not raise an exception"
             except ValueError as e:
                 assert True
@@ -146,7 +158,7 @@ class TestLinkReads( SBaseClass ):
     def test_mpfd( self ):
         result = structure.match_pattern_for_datadir( '/some/path/Plat1/file' )
         expected = self.readinformat.format( 'Plat1' )
-        ere( expected, result )
+        eq_( expected, result )
 
     def test_lrbs( self ):
         ''' Make sure that any list of valid reads get linked '''
@@ -166,10 +178,10 @@ class TestLinkReads( SBaseClass ):
         print "Paths touched: {}".format(outpaths)
         # Now there should be directories for each read
         sampledirs = os.listdir( self.readsbysampledir )
-        ere( expected_dirs.keys(), sampledirs )
+        eq_( sorted(expected_dirs.keys()), sorted(sampledirs) )
         for sample,expectedfiles in expected_dirs.items():
             resultfiles = os.listdir( os.path.join( self.readsbysampledir, sample ) )
-            ere( expectedfiles, resultfiles )
+            eq_( sorted( expectedfiles ), sorted( resultfiles ) )
 
     def test_linkreadsbysample_multidir( self ):
         ''' Make sure a directory with directories containing reads works '''
@@ -219,10 +231,10 @@ class TestLinkReads( SBaseClass ):
         structure.link_read_by_sample( read_path, self.readsbysampledir, cpat )
         result = os.listdir( self.readsbysampledir )
         # Make sure sample name dir creates
-        ere( expect, result )
+        eq_( expect, result )
         # Make sure samples get linked
         if expect:
             for ed in expect:
                 for sl in glob( os.path.join( ed, '*' ) ):
                     linkpath = os.readlink( sl )
-                    ere( read_path, linkpath )
+                    eq_( read_path, linkpath )
