@@ -56,18 +56,23 @@ done
 # Make sure all.gaps exists
 if [ -e ${gapdir}/all.gaps ]
 then
+    echo "Generating per segment gaps"
     mkdir ${gapdir}/Segments
     # Separate all segment gap files
     # Gathers all the unique segment types
     # !! Assumes reference names all end in segment name !!
     virus_names=$(awk -F'/' '/,/ {print $1}' ${gapdir}/all.gaps | sort | uniq)
+    echo "Iterating through viruses: ${virus_names}"
     for virus in ${virus_names}
     do
         seg_names=$(grep "^${virus}" ${gapdir}/all.gaps | cut -d'/' -f5 | cut -d'|' -f1 | sort | uniq)
+        echo "Iterating through segments: ${seg_names}"
         for segname in ${seg_names}
         do
+            segfile=${gapdir}/Segments/${segname}
+            echo "Generating ${segfile}.gaps"
             # Prepends sample name to gap line and removes reference name
-            egrep "(.*__.*__.*)$|^${virus}.*/${segname}\|" Gaps/all.gaps | grep -B 1 "${segname}|" | grep -v '\-\-' | xargs -n 2 | sed "s%\(.*__.*__.*\)\s.*/${segname}|%\1|%" > ${segfile}.gaps
+            egrep "(.*__.*__.*)$|^${virus}.*/${segname}\|" ${gapdir}/all.gaps | grep -B 1 "${segname}|" | grep -v '\-\-' | xargs -n 2 | sed "s%\(.*__.*__.*\)\s.*/${segname}|%\1|%" > ${segfile}.gaps
 
             # Generate the Graphic
             if [ -e ${segfile}.gaps ]
