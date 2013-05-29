@@ -72,6 +72,8 @@ setup(
         "numpy (>=1.6)",
         "biopython (>=1.59)",
         "configobj",
+        "pyRoche",
+        "NGSCoverage"
     ],
     long_description=read('README.md'),
 )
