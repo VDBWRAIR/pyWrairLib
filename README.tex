@@ -1,0 +1,558 @@
+\documentclass{article}
+
+\usepackage[margin=0.5in]{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdflscape}
+\usepackage{hyperref}
+
+\hypersetup{linktocpage}
+
+\lstset {%
+    breakatwhitespace=false,
+    breaklines=true,
+    keepspaces=true,
+    keywordstyle=\color{blue},
+    showspaces=false,
+    tabsize=2,
+    frame=single
+}
+
+\begin{document}
+\title{pyWrairLib Documentation}
+\author{Tyghe Vallard}
+\date{May 2013}
+\maketitle
+\tableofcontents
+
+\section{Install}
+It is highly recommended to install utilizing a virtual environment. It will be assumed from here on that you are doing so.
+
+\subsection{Virtual Env Setup}
+If you already have a virtual env setup
+
+That is, the output of the following command is not empty or you don't know what a virtualenv is:
+\begin{lstlisting}
+echo $VIRTUAL_ENV
+\end{lstlisting
+
+\section{The Pipeline}
+
+\subsection{Introduction}
+The concept of The Pipeline is quite simple. Execute one script after another performing one task after another on the data until it is processed. Because NGS Data is so large, it is best to run most of these scripts on a Multiprocessor/Multicore system.
+If you want to know how many CPUs and Cores you have in linux just issue the following command
+\begin{lstlisting}
+cat /proc/cpuinfo
+\end{lstlisting}
+You will have to manually look through this specifically looking for the physical id and cpu cores
+
+\subsection{Pipline Pieces}
+The Pipeline is composed of two parts:
+\begin{enumerate}
+\item Data Setup
+\item Analysis
+\end{enumerate}
+
+\subsection{Available Scripts}
+These are the available scripts that drive the pipeline.
+The full documentation for each of the scripts is detailed at the bottom of the document.
+\subsubsection{Analysis}
+ \begin{itemize}
+ \item genSummary.sh
+  \begin{itemize}
+   \item Runs summary scripts to generate compiled summary output for GsMapper projects inside a directory
+  \end{itemize}
+ \item mapSamples.py
+  \begin{itemize}
+   \item Creates and runs gsmapper projects based on a RunFile
+  \end{itemize}
+ \item mapSummary.py
+  \begin{itemize}
+   \item Creates AllRefStatus.xls file which gives mapping depth and coverage percentage for each reference that was used in the reference mappings
+  \end{itemize}
+ \item genallcontigs.py
+  \begin{itemize}
+   \item Creates a directory containing all GsMapper project's 454AllContigs.fna+.qual consolidated into a single directory. Each AllContigs fasta+qual file is merged into a single .fastq file named after the GsMapper project directory from which it originated.
+   \end{itemize}
+ \item allcontig\_to\_allsample.py
+  \begin{itemize}
+   \item Merges a GsMapper project's 454AllContigs.fna and 454AllContigs.qual file into a single .fastq
+  \end{itemize}
+ \item genallrefstatus.sh
+  \begin{itemize}
+   \item Legacy shell script that merges together all found 454RefStatus.txt files into a single output stream/file
+  \end{itemize}
+ \item variant\_lookup
+  \begin{itemize}
+   \item Script to aid in the lookup of variant information
+  \end{itemize}
+ \end{itemize}
+\subsubsection{Data}
+ \begin{itemize}
+  \item demultiplex
+   \begin{itemize}
+    \item Demultiplexes all found sff files inside of a given sff directory. Also renames the generated files utilizing a given runfile.
+   \end{itemize}
+  \item link\_reads
+   \begin{itemize}
+    \item Links all valid reads found in a given directory into the NGSData's ReadsBySample directory
+   \end{itemize}
+  \item sanger\_to\_fastq
+   \begin{itemize}
+    \item Helper script to convert sanger .ab1 sequence files to .fastq files. Useful as Newbler only accepts .sff or .fastq as input sequence format.
+   \end{itemize}
+ \end{itemize}
+\subsubsection{Misc/Undocumented/InDevelopment}
+ \begin{itemize}
+  \item bestblast
+  \item entrez\_helper
+  \item reads\_for\_contig
+  \item refrename.py
+  \item splitsff
+ \end{itemize}
+
+\subsection{Running the Pipeline}
+
+\subsection{Data Setup}
+\begin{itemize}
+\item Copy the NGS data from the instrument into its appropriate location under the NGSData/RawReads directory
+{\tiny
+\begin{lstlisting}[language=bash]
+cp -R <path to ngsdata on usb drive or wherever> <path to NGSData>/RawReads/<sequencer type>/
+\end{lstlisting}
+}
+\item Create a meta directory for that run
+{\tiny
+\begin{lstlisting}[language=bash]
+mkdir <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta
+\end{lstlisting}
+}
+\item Create Primer and Ref directories and copy RunFile into meta directory
+{\tiny
+\begin{lstlisting}[language=bash]
+for adir in Primer Ref; \
+do \
+    mkdir <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta/${adir}; \
+done
+mv <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/<runfile>.txt <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta/
+cp <path to primer fasta files> <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta/Primer/
+\end{lstlisting}
+}
+\item Link the Signal processing directory from the RawReads sequencer directory into NGSData/ReadData
+{\tiny
+\begin{lstlisting}[language=bash]
+ln -s <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/D\_*signalProcessing* <path to NGSData>/ReadData/<sequencer type>/
+\end{lstlisting}
+}
+\item Change directory to the Signal Processing Directory for the run you want to demultiplex
+{\tiny
+\begin{lstlisting}[language=bash]
+cd <path to NGSData>/ReadData/<sequencer type>/<signal processing directory>
+\end{lstlisting}
+}
+\item Run the demultiplex script to demultiplex the raw sff files and rename them according to the runfile
+{\tiny
+\begin{lstlisting}[language=bash]
+demultiplex -s sff/ -r <path to runfile>
+\end{lstlisting}
+}
+\item Link the reads from the demultiplexed directory into the NGSData/ReadsBySample directory
+{\tiny
+\begin{lstlisting}[language=bash]
+link_reads
+\end{lstlisting}
+}
+\end{itemize}
+
+After this is completed all the data for each sample will be located under the NGSData/ReadsBySample directory under that sample's name
+This is important because mapSamples.py looks there for read data
+
+\subsection{Analysis}
+\begin{itemize}
+\item Change directory to the base of your Analysis data
+{\tiny
+\begin{lstlisting}[language=bash]
+cd <path to Analysis>
+\end{lstlisting}
+}
+\item Create a new analysis directory and change directory to it. Typically named after the NGS Sequencer run you wish to analyze
+{\tiny
+\begin{lstlisting}[language=bash]
+mkdir <YYYY_MM_DD>
+cd <YYYY_MM_DD>
+\end{lstlisting}
+}
+\item Link in the meta directory for the NGS Run
+{\tiny
+\begin{lstlisting}[language=bash]
+ln -s <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta .
+\end{lstlisting}
+}
+\item Copy any needed references into the meta/Ref folder
+\item Create a directory for the analysis with whatever name you want with a workfile directory to place summarys and RunFile
+{\tiny
+\begin{lstlisting}[language=bash]
+mkdir myanalysis && mkdir myanalysis/workfile
+\end{lstlisting}
+}
+\item Copy Runfile from meta directory to workfile directory
+{\tiny
+\begin{lstlisting}[language=bash]
+cp meta/Runfile.txt myanalysis/workfile
+\end{lstlisting}
+}
+\item Edit the copied runfile inside of the workfile directory and set references for each of the samples. You may specify a directory of references instead of individual reference files to include all *.fasta files inside of that directory.
+\item Once the runfile is copied you can run the mapping for all samples inside of the RunFile that are not commented out(See more about RunFiles below). Make sure you have changed directory to the analysis directory you created.
+  \begin{itemize}
+   \item Be patient if there are a lot of samples to map.
+  \end{itemize}
+{\tiny
+\begin{lstlisting}[language=bash]
+cd myanalysis
+mapSamples.py workfile/Runfile.txt
+\end{lstlisting}
+}
+\item When mapSamples.py is finished you can generate summeries with the genSummary.sh script
+{\tiny
+\begin{lstlisting}[language=bash]
+genSummary.sh
+\end{lstlisting}
+}
+\end{itemize}
+
+
+\section{Config Files}
+ \subsection{settings.cfg}
+This is the main configuration file that controls how all of the libraries and scripts intereact in the various pyWrairLib modules.
+When pyWrairLib is installed this file is copied into a directory called config inside of the PYTHONHOME environmental variable
+\textit{You can see where this is by issuing}
+\begin{lstlisting}[language=bash]
+echo $PYTHONHOME
+\end{lstlisting}
+\textbf{If nothing is displayed then you need to locate your system's default python home}
+
+\subsection{MidParse.conf}
+This file is used by the roche software to demultiplex sff files. The contents of the file contain a mapping
+between a name and a barcode sequence.
+The structure of the file is as follows
+\begin{lstlisting}
+MID
+{
+    mid = "MIDNAME1", "BARCODESEQUENCE", MISMATCHTOLERANCE, "OPTIONAL 3' Trim Sequence";
+    mid = "MIDNAME2", "BARCODESEQUENCE", MISMATCHTOLERANCE, "OPTIONAL 3' Trim Sequence";
+}
+\end{lstlisting}
+
+{\em More information on this file can be found in the Roche documentation Part C under MIDConfig.parse. An example file that can be used is included in the config directory}
+
+ \subsection{RunFile}
+Run files are simply a file that links a samplename to the following information about that sample
+\begin{itemize}
+ \item Region number
+ \item samplename
+ \item virus name
+  \begin{itemize}
+   \item Should conform to a valid wrair virus name(More details later on that)
+  \end{itemize}
+ \item barcode/midkey name
+  \begin{itemize}
+   \item Has to be a valid midkey name inside of the Midparse.conf file(for sfffile to demultiplex with using --mcf option)
+  \end{itemize}
+ \item mismatch tolerance
+ \item reference directory/file to use to map to
+  \begin{itemize}
+   \item Can be a directory of reference files or a single reference
+  \end{itemize}
+ \item unique sampleid
+  \begin{itemize}
+   \item Deprecated, just use the same as you put in the samplename column
+  \end{itemize}
+ \item primerfile location
+  \begin{itemize}
+   \item Fasta file of primers to trim off
+  \end{itemize}
+\end{itemize}
+
+The following RunFile templates utilize Python Template Strings
+You can read more about them at:
+
+http://docs.python.org/2/library/string.html\#template-strings
+
+Basically replace anything that has a dollar sign in front of it with a value
+
+{\tiny
+\subsubsection{RunFile Header}
+\begin{lstlisting}
+# $platform sample list
+# $numregions Region $type
+# Run File ID: $date.$id
+!Region Sample_name     Genotype        MIDKey_name     Mismatch_tolerance      Reference_genome_location       Unique_sample_id        Primers
+\end{lstlisting}
+}
+
+\begin{itemize}
+ \item The header line (starts with a !) is tab separated
+ \item \$platform would be replaced by Roche454 or IonTorrent
+ \item \$date needs to be a valid date string that is in one of the following formats
+ \begin{itemize}
+  \item DDMMYYYY
+  \item DD\_MM\_YYYY
+  \item YYYY\_MM\_DD
+ \end{itemize}
+ \item \$id is anything that does not contain a space character
+\end{itemize}
+\subsubsection{RunFile Sample Line}
+This line is also tab separated
+\begin{lstlisting}
+$region $sample $virus  $midkey $mismatch       $reference      $sample $primer
+\end{lstlisting}
+
+\subsubsection{Sample RunFile}
+Here is an example RunFile with 2 samples
+
+Sample D1\_FST2432 is in region 1 and has barcode IX001 from the MidParse.conf file
+
+Sample D1\_FST2410 is in region 2 and has barcode IX002 from the MidParse.conf file
+
+\begin{landscape}
+{\tiny
+\begin{lstlisting}
+# IonExpress sample list
+# 2 Region PTP
+# Run File ID: 04192013.PGM.CPTLin
+!Region Sample_name     Genotype        MIDKey_name     Mismatch_tolerance      Reference_genome_location       Unique_sample_id        Primers
+1       D1_FST2432      Den1    IX001   0       Analysis/PipelineRuns/2013_04_19/Ref/Den1       D1_FST2432      NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna
+2       D1_FST2410      Den1    IX002   0       Analysis/PipelineRuns/2013_04_19/Ref/Den1       D1_FST2410      NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna
+\end{lstlisting}
+}
+\end{landscape}
+
+\section{Libraries}
+This section lists all of the libraries that make up pyWrairLib
+
+Each library may contain scripts as well which are listed with their usage
+
+\subsection{wrairdata}
+
+\subsubsection{sanger\_to\_fastq}
+Convert .ab1 files into various formats(by default fastq)
+This script is under development and should be considered as such
+That being said, it seems to work fine giving it the -d and -t options together
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+usage: sanger_to_fastq [-h] [-s SANGERFILE] [-d SANGERDIR] [-o OUTPUTFILE]
+                       [-t OUTPUTTYPE]
+
+Convert sanger .ab1 file to another type
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SANGERFILE, --sanger-file SANGERFILE
+                        Sanger file to convert
+  -d SANGERDIR, --sanger-dir SANGERDIR
+                        Directory containing sanger files
+  -o OUTPUTFILE, --output-file OUTPUTFILE
+                        The output filename. Omit an extension if you use the
+                        -t fasta+qual option.
+  -t OUTPUTTYPE, --output-type OUTPUTTYPE
+                        The output file type. Check out
+                        http://biopython.org/wiki/SeqIO for options. Use
+                        fasta+qual to get both fasta and qual files
+\end{lstlisting}
+
+\subsubsection{demultiplex}
+While there are many options for this command, only the -r and -s options are typically used.
+\begin{itemize}
+ \item -r Specifies the location of the runfile so it knows how to map sample names with what barcode/region they are from
+ \item -s Specifies the location of the sff directory that contains the multiplexed sff files to demultiplex
+\end{itemize}
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+usage: demultiplex [-h] [-d PROCDIR] [-r RUNFILE] [-s SFFDIR] [-o OUTPUTDIR]
+                   [--mcf MIDPARSEFILE] [--sfffilecmd SFFFILECMD] [--rename]
+                   [--demultiplex]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d PROCDIR, --image-processing-dir PROCDIR
+                        Image processing directory path
+  -r RUNFILE, --runfile RUNFILE
+                        Path to the Runfile
+  -s SFFDIR, --sff-dir SFFDIR
+                        Path to directory containing sff files
+  -o OUTPUTDIR, --output-dir OUTPUTDIR
+                        Output directory path[Default: demultiplexed/]
+  --mcf MIDPARSEFILE    Midkey config parse file[Default:
+                        NGSData/MidParse.conf]
+  --sfffilecmd SFFFILECMD
+                        Path to sfffile command[Default:
+                        bin/sfffile]
+  --rename              Only rename already demultiplexed sff files
+  --demultiplex         Only demultiplex. Don't rename
+\end{lstlisting}
+\begin{itemize}
+ \item At this time the -d option is in testing and unstable
+\end{itemize}
+
+\subsubsection{link\_reads}
+link\_reads is a simple helper script to link NGS reads to the NGSData's ReadsBySample directory
+link\_reads by default looks to see if there is a demultiplexed directory in the current directory you are in otherwise defaults to just
+the current directory you are in or you can manually set the directory by using the -d option
+
+Typically link\_reads is run right after running demultiplex
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+usage: link_reads [-h] [-d INPUTDIR] [-c CONFIGPATH]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d INPUTDIR, --demultiplexed-dir INPUTDIR
+                        Directory containing read data[Default:
+                        demultiplexed]
+  -c CONFIGPATH, --config CONFIGPATH
+                        Config file to use
+\end{lstlisting}
+
+\subsection{wrairlib}
+
+\subsection{wrairnaming}
+
+\subsection{wrairanalysis}
+
+\subsubsection{mapSamples.py}
+mapSamples.py is used to map samples to a reference genome using the Roche Newbler mapper.
+It derives all of its parameters from a RunFile.
+It will create GsMapper project directories inside of the directory that you execute it from. It is usually best to create a directory to run 
+this command from within.
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+usage: mapSamples.py [-h] [-c CONFIGPATH] runfile
+
+positional arguments:
+  runfile               Runfile path to use
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIGPATH, --config CONFIGPATH
+                        Config file to use
+\end{lstlisting}
+
+\subsubsection{genSummary.sh}
+This is a wrapper shell script that runs post mapping summary scripts. It doesn't generate any output or output files itself, but runs scripts that
+do generate output.
+It runs all scripts on all GsMapper directories found in the current directory it is executed from.
+It is easy to run after mapSamples.py is run since mapSamples.py creates GsMapper projects in a directory and then you can just run genSummary.sh 
+after that to get a more compiled look at all of the projects status
+\textbf{Currently runs:}
+\begin{itemize}
+ \item Gap analysis
+  \begin{itemize}
+   \item Compiles the output of NGSCoverage's gapsformids.py into images that are separated by each virus's segment inside of Gaps/Segments
+  \end{itemize}
+ \item genallcontigs.py
+ \item mapSummary.py 
+ \item SequenceExtraction's Summary -table
+\end{itemize}
+
+\paragraph{Usage}
+\begin{lstlisting}
+genSummary.sh
+\end{lstlisting}
+\textit{You must run this from within the same directory that mapSamples.py was run}
+
+\subsubsection{mapSummary.py}
+Given a directory containing gsMapper projects, this script will find all 454RefStatus.txt files and 
+compiles a single Excel spreadsheet from them for all references used across all projects.
+You can also specify a reference file to 'target' so that only the references inside that file will be 
+listed in the output excel file.
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+mapSummary.py -d <projectdir> [-r <reference>] [-o <outputfile>]
+\end{lstlisting}
+\begin{itemize}
+ \item projectdir can by any directory that directly contains GsMapper projects. Usually this directory is the same directory that mapSamples.py was executed from.
+ \item reference is optional and should be one of the reference files that was used in the mapping. This basically filters out all references so that only the reference you specify will be listed in the output
+ \item outputfile is optional and specifies where to write the resulting Excel file. The default is in the current directory with the name AllRefStatus.xls
+\end{itemize}
+
+\subsubsection{genallcontigs.py}
+Searches inside a given directory for any gsMapper directories
+For every gsMapper directory found, it gathers all contigs from the 454AllContigs.fna and writes them to a file named 
+after the project directory inside of the given output directory.
+The output is essentially a single directory containing Merged 454AllContigs.fna and .qual files into a .fastq file for 
+each gsMapper directory
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+genallcontigs.py -d <projectdir> [-o <outputdir>]
+\end{lstlisting}
+\begin{itemize}
+ \item projectdir can by any directory that directly contains GsMapper projects. Usually this directory is the same directory that mapSamples.py was executed from.
+ \item outputdir is optional and defines what directory to place the results in. By default it is FastaContigs inside the current directory.
+\end{itemize}
+
+\subsubsection{allcontig\_to\_allsample.py}
+Given a single gsMapper project directory, merges the 454AllContigs.fna and 454AllContigs.qual 
+files into a single .fastq file Output is by default sent to STDOUT(screen) but can be set to a file by using the -o option
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+allcontig_to_allsample.py -p <gsproject> [-o <outputfile>]
+\end{lstlisting}
+
+\begin{itemize}
+ \item gsproject is the path to a single Gs Project
+ \item outputfile is optional and should be a file to write the resulting fastq to. By default it is written to the terminal
+\end{itemize}
+
+\subsubsection{variant\_lookup}
+Variant lookup looks up a position in a GsMapper alignment and displays the information about that variant
+You just have to provide the nucleotide position and optionally a unique portion of the reference you are looking for.
+
+If you do not provide the reference it will display all references for that alignment
+
+\paragraph{Usage}
+
+\begin{lstlisting}
+usage: variant_lookup [-h] [-d PDPATH] variant_pos [ref_name]
+
+positional arguments:
+  variant_pos           The variant position to display info for
+  ref_name              The identifier to limit the info for. Default is to
+                        show all identifiers
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d PDPATH, --project_directory PDPATH
+                        GsProject directory path[Default:Current working directory]
+\end{lstlisting}
+\begin{itemize}
+ \item variant\_pos is the Nucleotide position of the alignment to look for the information for
+ \item ref\_name only has to be a portion of the reference you are looking for. This is simply a filter for all reference names in the alignment.
+ \begin{verbatim}
+  Example:
+    If the alignment has 3 references
+     Reference_ABCD
+     Reference_ACDE
+     Reference_1
+ \end{verbatim}
+ \begin{itemize}
+   \item Specifying Reference as the ref\_name argument would yield all 3 references
+   \item Specifying ABCD would only yield Reference\_ABCD
+   \item Specifying Reference\_A woudl yield Reference\_ABCD and Reference\_ACDE
+ \end{itemize}
+ \item project\_directory is only used if your current working directory is not a GsMapper project. It is easiest to invoke variant\_lookup by first changing directory to the GsMapper project you are wanting to work on.
+\end{itemize}
+\end{document}

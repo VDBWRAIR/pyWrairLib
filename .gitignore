@@ -41,3 +41,8 @@ _version.py
 rungen500.sh
 wrairdata/tests/fixtures/Roche454*
 *.log
+
+# Latex
+README.aux
+README.out
+README.toc

@@ -65,6 +65,7 @@ setup(
     scripts = scripts(),
     data_files = [
         ('config', glob.glob( 'config/*' )),
+        ('docs', ['README.pdf',]),
     ],
     requires = [
         "xlwt",
