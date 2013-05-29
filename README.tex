@@ -5,6 +5,8 @@
 \usepackage{color}
 \usepackage{pdflscape}
 \usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 
 \hypersetup{linktocpage}
 
@@ -14,14 +16,15 @@
     keepspaces=true,
     keywordstyle=\color{blue},
     showspaces=false,
-    tabsize=2,
-    frame=single
+    tabsize=4,
+    frame=single,
+    basicstyle=\footnotesize
 }
 
 \begin{document}
 \title{pyWrairLib Documentation}
 \author{Tyghe Vallard}
-\date{May 2013}
+\date{\today}
 \maketitle
 \tableofcontents
 
@@ -29,12 +32,37 @@
 It is highly recommended to install utilizing a virtual environment. It will be assumed from here on that you are doing so.
 
 \subsection{Virtual Env Setup}
-If you already have a virtual env setup
-
-That is, the output of the following command is not empty or you don't know what a virtualenv is:
+If you already have a virtual env setup you do not need to continue with this section.
+That is, the output of the following command is not empty or you know what a virtualenv is:
 \begin{lstlisting}
 echo $VIRTUAL_ENV
-\end{lstlisting
+\end{lstlisting}
+Otherwise, simply pick where you want your virtual environment to be and issue the following command:
+
+\begin{lstlisting}
+virtualenv --distribute <name of virtualenv>
+\end{lstlisting}
+
+Then issue the following to activate the environment
+
+\begin{lstlisting}
+source <name of virtualenv>/bin/activate
+\end{lstlisting}
+
+\subsection{Install the dependencies}
+\begin{lstlisting}
+pip install -r requirements.txt
+\end{lstlisting}
+
+\subsection{Install pyWrairLib}
+\begin{enumerate}
+ \item Edit the config/settings.cfg file inside of the pyWrairLib folder to suit your environment. More on settings.cfg below
+ \item Execute the installer
+\begin{lstlisting}
+cd pyWrairLib
+python setup.py install
+\end{lstlisting}
+\end{enumerate}
 
 \section{The Pipeline}
 
@@ -111,52 +139,34 @@ The full documentation for each of the scripts is detailed at the bottom of the 
   \item splitsff
  \end{itemize}
 
-\subsection{Running the Pipeline}
+\section{Running the Pipeline}
+
+\textit{Anything between a greater than and less than symbol should be replaced using information for your setup}
 
 \subsection{Data Setup}
+
+The data setup requires that you follow the directory structure in the settings.cfg file which should be located in your PYTHONHOME or VIRTUAL\_ENV under the config directory.
+Anytime you see <ngsdir> in the following section replace it with the path that is in your settings.cfg file set for NGSDATA\_DIR
+Same goes for <readsbysampledir>, <rawdatadir> and <readdatadir>
+
+\subsubsection{All Platforms}
 \begin{itemize}
-\item Copy the NGS data from the instrument into its appropriate location under the NGSData/RawReads directory
+\item Copy the Sequence data from the instrument into its appropriate location under the <rawdatadir> directory
+\begin{lstlisting}[language=bash]
+rsync -av --progress <path_to_data>/<sequence_run_date> \
+ <rawreadsdir>/<sequencer_type>/
+\end{lstlisting}
+
+\item Change directory to the copied directory
 {\tiny
 \begin{lstlisting}[language=bash]
-cp -R <path to ngsdata on usb drive or wherever> <path to NGSData>/RawReads/<sequencer type>/
+cd <rawreadsdir>/<sequencer_type>/<sequence_run_date>
 \end{lstlisting}
 }
-\item Create a meta directory for that run
-{\tiny
-\begin{lstlisting}[language=bash]
-mkdir <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta
-\end{lstlisting}
-}
-\item Create Primer and Ref directories and copy RunFile into meta directory
-{\tiny
-\begin{lstlisting}[language=bash]
-for adir in Primer Ref; \
-do \
-    mkdir <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta/${adir}; \
-done
-mv <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/<runfile>.txt <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta/
-cp <path to primer fasta files> <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta/Primer/
-\end{lstlisting}
-}
-\item Link the Signal processing directory from the RawReads sequencer directory into NGSData/ReadData
-{\tiny
-\begin{lstlisting}[language=bash]
-ln -s <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/D\_*signalProcessing* <path to NGSData>/ReadData/<sequencer type>/
-\end{lstlisting}
-}
-\item Change directory to the Signal Processing Directory for the run you want to demultiplex
-{\tiny
-\begin{lstlisting}[language=bash]
-cd <path to NGSData>/ReadData/<sequencer type>/<signal processing directory>
-\end{lstlisting}
-}
-\item Run the demultiplex script to demultiplex the raw sff files and rename them according to the runfile
-{\tiny
-\begin{lstlisting}[language=bash]
-demultiplex -s sff/ -r <path to runfile>
-\end{lstlisting}
-}
-\item Link the reads from the demultiplexed directory into the NGSData/ReadsBySample directory
+
+\item Proceed with the directions for the platform you are working on below and then return to the next step
+
+\item Link into the NGSData/ReadsBySample directory
 {\tiny
 \begin{lstlisting}[language=bash]
 link_reads
@@ -164,8 +174,78 @@ link_reads
 }
 \end{itemize}
 
-After this is completed all the data for each sample will be located under the NGSData/ReadsBySample directory under that sample's name
+After this is completed all the data for each sample will be located under the <readsbysampledir> directory under that sample's name
 This is important because mapSamples.py looks there for read data
+
+\subsubsection{Sanger}
+Sanger data needs to be converted to *.fastq files using the sanger\_to\_fastq script
+\begin{itemize}
+ \item In theory you should be able to link the RawReads directly into the ReadData folder and then simply run sanger\_to\_fastq on them. That being said, you will likely have to rename the files correctly before doing so which will not be detailed here.
+\begin{lstlisting}
+ln -s <rawdatadir>/Sanger/<sequence_date> <readdatadir>/Sanger/
+\end{lstlisting}
+ \item Change directory to the linked directory and create fastq files
+\begin{lstlisting}
+cd <readdatadir>/Sanger/<sequence_date>
+sanger_to_fastq -d $(pwd) -t fastq
+\end{lstlisting}
+\end{itemize}
+
+\subsubsection{Roche454 and IonTorrent}
+Roche454 and IonTorrent both produce sff files which first need to be demultiplexed before linking
+\begin{itemize}
+\item Create a meta directory for that run
+{\tiny
+\begin{lstlisting}[language=bash]
+mkdir meta
+\end{lstlisting}
+}
+ 
+\item Create Primer and Ref directories and copy RunFile into meta directory. You may have to search a bit for the RunFile
+{\tiny
+\begin{lstlisting}[language=bash]
+mkdir Primer
+mkdir Ref
+cp <RunFile.txt> meta/
+cp <path_to_primer_fasta_files> meta/Primer/
+\end{lstlisting}
+}
+
+\item Change directory into the R\_ directory that is not the prewash directory
+{\tiny
+\begin{lstlisting}[language=bash]
+cd R_<run_name>
+\end{lstlisting}
+}
+
+\item Link the meta directory into the Signal Processing directory
+{\tiny
+\begin{lstlisting}[language=bash]
+ln -s ../meta D_*signalProcessing*/
+\end{lstlisting}
+}
+
+\item Link the Signal processing directory from the RawReads sequencer directory into NGSData/ReadData
+{\tiny
+\begin{lstlisting}[language=bash]
+ln -s D_*signalProcessing* <readdatadir>/<sequencer_type>/
+\end{lstlisting}
+}
+
+\item Change directory to the Signal Processing Directory for the run you want to demultiplex. The following command only works if you issue it directly after the above command.
+{\tiny
+\begin{lstlisting}[language=bash]
+cd !$
+\end{lstlisting}
+}
+
+\item Run the demultiplex script to demultiplex the raw sff files and rename them according to the runfile
+{\tiny
+\begin{lstlisting}[language=bash]
+demultiplex -s sff/ -r meta/<RunFile.txt>
+\end{lstlisting}
+}
+\end{itemize}
 
 \subsection{Analysis}
 \begin{itemize}
@@ -222,13 +302,16 @@ genSummary.sh
 
 
 \section{Config Files}
- \subsection{settings.cfg}
-This is the main configuration file that controls how all of the libraries and scripts intereact in the various pyWrairLib modules.
-When pyWrairLib is installed this file is copied into a directory called config inside of the PYTHONHOME environmental variable
+
+\subsection{settings.cfg}
+This is the main configuration file that controls how all of the libraries and scripts intereact in the various pyWrairLib modules. When pyWrairLib is installed this file is copied into a directory called config inside of the PYTHONHOME or VIRTUAL\_ENV environmental variable.
+
 \textit{You can see where this is by issuing}
+
 \begin{lstlisting}[language=bash]
 echo $PYTHONHOME
 \end{lstlisting}
+
 \textbf{If nothing is displayed then you need to locate your system's default python home}
 
 \subsection{MidParse.conf}
@@ -280,15 +363,13 @@ http://docs.python.org/2/library/string.html\#template-strings
 
 Basically replace anything that has a dollar sign in front of it with a value
 
-{\tiny
 \subsubsection{RunFile Header}
-\begin{lstlisting}
+\begin{lstlisting}[basicstyle=\tiny]
 # $platform sample list
 # $numregions Region $type
 # Run File ID: $date.$id
-!Region Sample_name     Genotype        MIDKey_name     Mismatch_tolerance      Reference_genome_location       Unique_sample_id        Primers
+!Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers	
 \end{lstlisting}
-}
 
 \begin{itemize}
  \item The header line (starts with a !) is tab separated
@@ -303,26 +384,26 @@ Basically replace anything that has a dollar sign in front of it with a value
 \end{itemize}
 \subsubsection{RunFile Sample Line}
 This line is also tab separated
-\begin{lstlisting}
-$region $sample $virus  $midkey $mismatch       $reference      $sample $primer
+\begin{lstlisting}[basicstyle=\tiny]
+$region	$sample	$virus	$midkey	$mismatch	$reference	$sample	$primeri	
 \end{lstlisting}
 
 \subsubsection{Sample RunFile}
 Here is an example RunFile with 2 samples
 
-Sample D1\_FST2432 is in region 1 and has barcode IX001 from the MidParse.conf file
+Sample D1\_FST2432 is in region 1 and has barcode IX001 from the MidParse.conf file	
 
-Sample D1\_FST2410 is in region 2 and has barcode IX002 from the MidParse.conf file
+Sample D1\_FST2410 is in region 2 and has barcode IX002 from the MidParse.conf file	
 
 \begin{landscape}
 {\tiny
-\begin{lstlisting}
+\begin{lstlisting}[basicstyle=\tiny]
 # IonExpress sample list
 # 2 Region PTP
 # Run File ID: 04192013.PGM.CPTLin
-!Region Sample_name     Genotype        MIDKey_name     Mismatch_tolerance      Reference_genome_location       Unique_sample_id        Primers
-1       D1_FST2432      Den1    IX001   0       Analysis/PipelineRuns/2013_04_19/Ref/Den1       D1_FST2432      NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna
-2       D1_FST2410      Den1    IX002   0       Analysis/PipelineRuns/2013_04_19/Ref/Den1       D1_FST2410      NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna
+!Region	Sample_name	Genotype	MIDKey_name	Mismatch_tolerance	Reference_genome_location	Unique_sample_id	Primers	
+1	D1_FST2432	Den1	IX001	0	Analysis/PipelineRuns/2013_04_19/Ref/Den1	D1_FST2432	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna	
+2	D1_FST2410	Den1	IX002	0	Analysis/PipelineRuns/2013_04_19/Ref/Den1	D1_FST2410	NGSData/RawData/IonTorrent/2013_04_19/meta/Primer/Den1.fna	
 \end{lstlisting}
 }
 \end{landscape}
