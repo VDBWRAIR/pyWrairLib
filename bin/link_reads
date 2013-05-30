@@ -22,11 +22,13 @@ from argparse import ArgumentParser
 
 from wrairdata.structure import *
 from wrairlib import settings
+from wrairlib import __version__
 
 # Grab the logger
 logger = settings.setup_logger( 'link_reads' )
 
 def main( args ):
+    logger.info( "=== link_reads (pyWrairLib {}) ===".format( __version__ ) )
     config = settings.config
     if args.configpath is not None:
         config = settings.parse_config( args.configpath )

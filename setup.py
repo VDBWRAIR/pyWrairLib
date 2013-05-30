@@ -1,4 +1,5 @@
 import os
+import os.path
 from distutils.core import setup
 
 from fnmatch import fnmatch
@@ -6,7 +7,11 @@ import subprocess
 import sys
 import glob
 
+# Version file to store version information in
+ver_file = os.path.join( 'wrairlib', '_version.py' )
+
 # The major.minor version number
+# Set to 0 here as we set/read it later on
 __version__ = 0
 
 # Utility function to read the README file.
@@ -34,7 +39,7 @@ def set_version():
         print "unable to run git"
         return
 
-    with open( '_version.py', 'w' ) as fh:
+    with open( ver_file, 'w' ) as fh:
         global __version__
         __version__ = stdout.strip()
         fh.write( "__version__ = '%s'\n" % __version__ )
