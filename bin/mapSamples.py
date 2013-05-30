@@ -44,6 +44,7 @@ from wrairlib.runfiletitanium import RunFile
 from wrairlib.util import get_all_
 
 from wrairlib import settings
+from wrairlib import __version__
 
 # Where is newbler installed
 newbler_paths = None
@@ -188,9 +189,11 @@ def main( ):
     args = get_args()
     if args.configpath is not None:
         global_setup( settings.parse_config( args.configpath ) )
+        logger.info( "=== mapSamples.py (pyWrairLib {}) ===".format( __version__ ) )
         logger.info( "Using config file {}".format( args.configpath ) )
     else:
         global_setup( settings.config )
+        logger.info( "=== mapSamples.py (pyWrairLib {}) ===".format( __version__ ) )
         logger.info( "Usinge default config file from settings" )
 
     runfile = args.runfile

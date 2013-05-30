@@ -42,6 +42,7 @@ from glob import glob
 import logging
 
 from wrairlib import settings
+from wrairlib import __version__
 
 # Grab the logger
 logger = settings.setup_logger( name='demultiplex' )
@@ -55,6 +56,7 @@ sfffiledefault = settings.config['Paths']['Newbler']['sfffile']
 from wrairdata import demultiplex
 
 def main( args ):
+    logger.info( "=== Demultiplex (pyWrairLib {}) ===".format( __version__ ) )
     # There is a bug here with dealing with the midparsefile
     # You cannot specify -mcf and -d using this tecnique
     if args.procdir:
