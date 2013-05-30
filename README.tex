@@ -40,23 +40,25 @@ echo $VIRTUAL_ENV
 Otherwise, simply pick where you want your virtual environment to be and issue the following command:
 
 \begin{lstlisting}
-virtualenv --distribute <name of virtualenv>
+virtualenv --distribute <path_to_virtual_env>
 \end{lstlisting}
 
 Then issue the following to activate the environment
 
 \begin{lstlisting}
-source <name of virtualenv>/bin/activate
+source <path_to_virtual_env>/bin/activate
 \end{lstlisting}
+
+You will always do the above command to activate the virtual environment before running the pipeline.
 
 \subsection{Install the dependencies}
 \begin{lstlisting}
-pip install -r requirements.txt
+pip install -r pyWrairLib/requirements.txt
 \end{lstlisting}
 
 \subsection{Install pyWrairLib}
 \begin{enumerate}
- \item Edit the config/settings.cfg file inside of the pyWrairLib folder to suit your environment. More on settings.cfg below
+ \item Edit the config/settings.cfg file inside of the pyWrairLib folder to suit your environment. More on settings.cfg \ref{settings.cfg} below
  \item Execute the installer
 \begin{lstlisting}
 cd pyWrairLib
@@ -67,12 +69,12 @@ python setup.py install
 \section{The Pipeline}
 
 \subsection{Introduction}
-The concept of The Pipeline is quite simple. Execute one script after another performing one task after another on the data until it is processed. Because NGS Data is so large, it is best to run most of these scripts on a Multiprocessor/Multicore system.
+The concept of The Pipeline is quite simple. Execute one script after another performing one task after another on the data until it is processed. Because NGS Data is so large, it is best to run most of these scripts on a Multiprocessor/Multicore system that has more than 4 CPUs/cores
 If you want to know how many CPUs and Cores you have in linux just issue the following command
 \begin{lstlisting}
 cat /proc/cpuinfo
 \end{lstlisting}
-You will have to manually look through this specifically looking for the physical id and cpu cores
+Essentially each section
 
 \subsection{Pipline Pieces}
 The Pipeline is composed of two parts:
@@ -106,10 +108,6 @@ The full documentation for each of the scripts is detailed at the bottom of the 
   \begin{itemize}
    \item Merges a GsMapper project's 454AllContigs.fna and 454AllContigs.qual file into a single .fastq
   \end{itemize}
- \item genallrefstatus.sh
-  \begin{itemize}
-   \item Legacy shell script that merges together all found 454RefStatus.txt files into a single output stream/file
-  \end{itemize}
  \item variant\_lookup
   \begin{itemize}
    \item Script to aid in the lookup of variant information
@@ -137,6 +135,10 @@ The full documentation for each of the scripts is detailed at the bottom of the 
   \item reads\_for\_contig
   \item refrename.py
   \item splitsff
+  \item genallrefstatus.sh
+   \begin{itemize}
+    \item Shell script that merges together all found 454RefStatus.txt files into a single output stream/file
+   \end{itemize}
  \end{itemize}
 
 \section{Running the Pipeline}
@@ -154,13 +156,13 @@ Same goes for <readsbysampledir>, <rawdatadir> and <readdatadir>
 \item Copy the Sequence data from the instrument into its appropriate location under the <rawdatadir> directory
 \begin{lstlisting}[language=bash]
 rsync -av --progress <path_to_data>/<sequence_run_date> \
- <rawreadsdir>/<sequencer_type>/
+ <rawdatadir>/<sequencer_type>/
 \end{lstlisting}
 
 \item Change directory to the copied directory
 {\tiny
 \begin{lstlisting}[language=bash]
-cd <rawreadsdir>/<sequencer_type>/<sequence_run_date>
+cd <rawdatadir>/<sequencer_type>/<sequence_run_date>
 \end{lstlisting}
 }
 
@@ -204,12 +206,16 @@ mkdir meta
 \item Create Primer and Ref directories and copy RunFile into meta directory. You may have to search a bit for the RunFile
 {\tiny
 \begin{lstlisting}[language=bash]
+pushd meta
 mkdir Primer
 mkdir Ref
+popd
 cp <RunFile.txt> meta/
 cp <path_to_primer_fasta_files> meta/Primer/
 \end{lstlisting}
 }
+
+\item You will need to modify the RunFile to ensure it conforms to the RunFile specification(Read below in \ref{RunFile})
 
 \item Change directory into the R\_ directory that is not the prewash directory
 {\tiny
@@ -221,14 +227,14 @@ cd R_<run_name>
 \item Link the meta directory into the Signal Processing directory
 {\tiny
 \begin{lstlisting}[language=bash]
-ln -s ../meta D_*signalProcessing*/
+ln -s $(pwd)/../meta D_*signalProcessing*/
 \end{lstlisting}
 }
 
 \item Link the Signal processing directory from the RawReads sequencer directory into NGSData/ReadData
 {\tiny
 \begin{lstlisting}[language=bash]
-ln -s D_*signalProcessing* <readdatadir>/<sequencer_type>/
+ln -s $(pwd)/D_*signalProcessing* <readdatadir>/<sequencer_type>/
 \end{lstlisting}
 }
 
@@ -236,6 +242,7 @@ ln -s D_*signalProcessing* <readdatadir>/<sequencer_type>/
 {\tiny
 \begin{lstlisting}[language=bash]
 cd !$
+cd $(ls -tr | tail -n 1)
 \end{lstlisting}
 }
 
@@ -312,11 +319,19 @@ This is the main configuration file that controls how all of the libraries and s
 echo $PYTHONHOME
 \end{lstlisting}
 
-\textbf{If nothing is displayed then you need to locate your system's default python home}
+\textit{-- or --}
+
+\begin{lstlisting}[language=bash]
+echo $VIRTUAL_ENV
+\end{lstlisting}
+
+\textbf{If nothing is displayed then you need to locate your system's default python home.}
+
+\textbf{??Not sure how?? Google it or ask somebody that knows python.}
 
 \subsection{MidParse.conf}
-This file is used by the roche software to demultiplex sff files. The contents of the file contain a mapping
-between a name and a barcode sequence.
+This file is used by the roche software to demultiplex sff files. The contents of the file contain a mapping between a name and a barcode sequence.
+
 The structure of the file is as follows
 \begin{lstlisting}
 MID
@@ -326,7 +341,7 @@ MID
 }
 \end{lstlisting}
 
-{\em More information on this file can be found in the Roche documentation Part C under MIDConfig.parse. An example file that can be used is included in the config directory}
+{\em More information on this file can be found in the Roche documentation Part C under MIDConfig.parse. An example file that can be used is included in the config directory along with the settings.cfg file}
 
  \subsection{RunFile}
 Run files are simply a file that links a samplename to the following information about that sample
@@ -339,7 +354,7 @@ Run files are simply a file that links a samplename to the following information
   \end{itemize}
  \item barcode/midkey name
   \begin{itemize}
-   \item Has to be a valid midkey name inside of the Midparse.conf file(for sfffile to demultiplex with using --mcf option)
+   \item Has to be a valid midkey name inside of the Midparse.conf file(In the MidParse.conf example above MIDNAME1 \& MIDNAME2 are valid midkey names that could be used)
   \end{itemize}
  \item mismatch tolerance
  \item reference directory/file to use to map to
@@ -383,9 +398,10 @@ Basically replace anything that has a dollar sign in front of it with a value
  \item \$id is anything that does not contain a space character
 \end{itemize}
 \subsubsection{RunFile Sample Line}
-This line is also tab separated
+This line is also tab separated. This is just the template, replace the values that have a \$ before them with actual values.
+An actual sample file is located  on the next page.
 \begin{lstlisting}[basicstyle=\tiny]
-$region	$sample	$virus	$midkey	$mismatch	$reference	$sample	$primeri	
+$region	$sample	$virus	$midkey	$mismatch	$reference	$sample	$primer	
 \end{lstlisting}
 
 \subsubsection{Sample RunFile}
