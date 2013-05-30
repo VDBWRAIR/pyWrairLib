@@ -460,7 +460,7 @@ optional arguments:
 \end{lstlisting}
 
 \subsubsection{demultiplex}
-While there are many options for this command, only the -r and -s options are typically used.
+While there are many options for this command, only the -r and -s options are typically used as the rest of the options pull defaults from the settings.cfg file(See above).
 \begin{itemize}
  \item -r Specifies the location of the runfile so it knows how to map sample names with what barcode/region they are from
  \item -s Specifies the location of the sff directory that contains the multiplexed sff files to demultiplex
@@ -475,8 +475,6 @@ usage: demultiplex [-h] [-d PROCDIR] [-r RUNFILE] [-s SFFDIR] [-o OUTPUTDIR]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -d PROCDIR, --image-processing-dir PROCDIR
-                        Image processing directory path
   -r RUNFILE, --runfile RUNFILE
                         Path to the Runfile
   -s SFFDIR, --sff-dir SFFDIR
@@ -490,10 +488,6 @@ optional arguments:
                         bin/sfffile]
   --rename              Only rename already demultiplexed sff files
   --demultiplex         Only demultiplex. Don't rename
-\end{lstlisting}
-\begin{itemize}
- \item At this time the -d option is in testing and unstable
-\end{itemize}
 
 \subsubsection{link\_reads}
 link\_reads is a simple helper script to link NGS reads to the NGSData's ReadsBySample directory

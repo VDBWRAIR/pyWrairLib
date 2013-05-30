@@ -75,6 +75,15 @@ class TestRunFile( object ):
         return RunFileSample( **kwargs )
 
 class TestNewRunFile( TestRunFile ):
+    def test_blank_lines( self ):
+        rf = make_runfile_stringio( 'Roche454', 2, 'PTP', '2012_05_01', 'testblanklines', '\t\n\n\t\t   \n' )
+        try:
+            RunFile( rf )
+            assert True
+        except ValueError as e:
+            print e
+            assert False, "blank lines raised ValueError when it should not"
+
     def test_new_fromstr( self ):
         ''' Create new runfile from path '''
         for fix in fixtures.RUNFILES:
@@ -284,6 +293,17 @@ class TestNewSample( TestRunFileSample ):
             print "Expect: {}->{}".format(kwarg,value)
             print "Result: {}->{}".format(kwarg,getattr(s2,kwarg))
             assert value, getattr(s2,kwarg)
+
+    def test_blankline( self ):
+        ''' Giving a line with only whitepspace or empty should raise ValueError '''
+        sample_spaces = ('', '\n', '\t', ' ', '\t ', '\t \n')
+        for ss in sample_spaces:
+            try:
+                RunFileSample( ss, self.date )
+                print ss
+                assert False, "Did not raise value error for blank line"
+            except ValueError as e:
+                assert True
 
     def test_createsample_invaliddate( self ):
         ''' Make sure invalid dates raise ValueError '''
