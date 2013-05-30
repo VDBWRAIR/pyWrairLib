@@ -158,6 +158,7 @@ class RunFile( object ):
         """
         count = 0
         for row in self.handle:
+            # Don't do this because it could strip a needed \t off the end
             #row = row.rstrip()
             # Get the headers
             if row.startswith( '!' ):
@@ -176,7 +177,11 @@ class RunFile( object ):
                 count += 1
                 continue
             else:
-                self.add_sample( RunFileSample( row.strip(), self.date ) )
+                row = row.strip()
+                # Skip empty rows
+                if not row:
+                    continue
+                self.add_sample( RunFileSample( row, self.date ) )
             count += 1
         # Empty runfile
         # Hack for testing: allows StringIO to be empty
@@ -324,7 +329,7 @@ class RunFileSample(object):
                 # Extra tab at tend of line so just ignore it
                 s = s[:8]
             else:
-                raise ValueError( "Sample Row does not contain all necessary columns: %s" % s )
+                raise ValueError( "Sample Row does not contain all necessary columns. Row given: %s" % s )
 
         # Check for comment character
         if s[0].startswith( '#' ):

@@ -20,6 +20,7 @@ do
 done
 
 # Set Up
+deactivate
 export PYTHONPATH=${pypathdir}/pyWrairLib:${pypathdir}/pyRoche:${pypathdir}/NGSCoverage
 _OLDPATH=$PATH
 export PATH=${pypathdir}/pyWrairLib/bin:${pypathdir}/pyRoche/bin:${pypathdir}/NGSCoverage/bin:$PATH
