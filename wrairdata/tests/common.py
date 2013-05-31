@@ -7,6 +7,8 @@ import fnmatch
 import re
 import shutil
 from difflib import context_diff
+from wrairlib import settings
+from copy import deepcopy
 
 def erdiff( expect, result ):
     ''' Expects large strings that have newlines in both expect and result '''

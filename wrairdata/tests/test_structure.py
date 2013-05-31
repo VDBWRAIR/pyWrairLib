@@ -14,7 +14,6 @@ from nose.tools import eq_
 from common import BaseClass, ere
 import common
 
-#from ..structure import *
 from .. import structure
 
 class SBaseClass( BaseClass ):
@@ -46,18 +45,6 @@ class SBaseClass( BaseClass ):
         }
         structure.config['Paths'] = self.struct_config['Paths']
         structure.config['Platforms'] = self.struct_config['Platforms']
-
-    @classmethod
-    def ignoretearDownClass( self ):
-        # I'm still a bit baffled by this
-        from wrairlib import settings
-        orig_config = settings.parse_config( settings.path_to_config )
-        # It seems I have to change this for settings but not structure, but
-        # i do both just to make sure
-        structure.config = orig_config
-        settings.config = orig_config
-        eq_( settings.config, structure.config )
-        eq_( settings.config, orig_config )
 
 class TestCreateDirStructure( SBaseClass ):
     def setUp( self ):
