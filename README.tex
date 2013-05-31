@@ -28,27 +28,25 @@
 \maketitle
 \tableofcontents
 
+\pagebreak
+
 \section{Install}
 It is highly recommended to install utilizing a virtual environment. It will be assumed from here on that you are doing so.
 
 \subsection{Virtual Env Setup}
-If you already have a virtual env setup you do not need to continue with this section.
+If you already have a virtual env setup you do not need to continue with this section.\\
 That is, the output of the following command is not empty or you know what a virtualenv is:
 \begin{lstlisting}
 echo $VIRTUAL_ENV
 \end{lstlisting}
 Otherwise, simply pick where you want your virtual environment to be and issue the following command:
-
 \begin{lstlisting}
 virtualenv --distribute <path_to_virtual_env>
 \end{lstlisting}
-
 Then issue the following to activate the environment
-
 \begin{lstlisting}
 source <path_to_virtual_env>/bin/activate
 \end{lstlisting}
-
 You will always do the above command to activate the virtual environment before running the pipeline.
 
 \subsection{Install the dependencies}
@@ -56,9 +54,15 @@ You will always do the above command to activate the virtual environment before 
 pip install -r pyWrairLib/requirements.txt
 \end{lstlisting}
 
+\subsubsection{pyRoche and NGSCoverage}
+You may need to also install pyRoche and NGSCoverage separately as they are not currently published openly.
+\begin{lstlisting}
+for pkg in pyRoche NGSCoverage; do cd ${pkg}; rm -rf build; python setup.py install; cd ..; done;
+\end{lstlisting}
+
 \subsection{Install pyWrairLib}
 \begin{enumerate}
- \item Edit the config/settings.cfg file inside of the pyWrairLib folder to suit your environment. More on settings.cfg \ref{settings.cfg} below
+ \item Edit the config/settings.cfg file inside of the pyWrairLib folder to suit your environment. More on settings.cfg Section~\ref{sec:settings.cfg} below
  \item Execute the installer
 \begin{lstlisting}
 cd pyWrairLib
@@ -70,11 +74,10 @@ python setup.py install
 
 \subsection{Introduction}
 The concept of The Pipeline is quite simple. Execute one script after another performing one task after another on the data until it is processed. Because NGS Data is so large, it is best to run most of these scripts on a Multiprocessor/Multicore system that has more than 4 CPUs/cores
-If you want to know how many CPUs and Cores you have in linux just issue the following command
+You can get a rough guess at what to set for this variable by issuing the following command:
 \begin{lstlisting}
-cat /proc/cpuinfo
+cat /proc/cpuinfo | grep processor | wc -l
 \end{lstlisting}
-Essentially each section
 
 \subsection{Pipline Pieces}
 The Pipeline is composed of two parts:
@@ -94,7 +97,7 @@ The full documentation for each of the scripts is detailed at the bottom of the 
   \end{itemize}
  \item mapSamples.py
   \begin{itemize}
-   \item Creates and runs gsmapper projects based on a RunFile
+   \item Creates and runs gsmapper projects based on a RunFile(See Section~\ref{sec:RunFile})
   \end{itemize}
  \item mapSummary.py
   \begin{itemize}
@@ -147,7 +150,7 @@ The full documentation for each of the scripts is detailed at the bottom of the 
 
 \subsection{Data Setup}
 
-The data setup requires that you follow the directory structure in the settings.cfg file which should be located in your PYTHONHOME or VIRTUAL\_ENV under the config directory.
+The data setup requires that you follow the directory structure in the settings.cfg(Section~\ref{sec:settings.cfg}) file which should be located in your PYTHONHOME or VIRTUAL\_ENV under the config directory.
 Anytime you see <ngsdir> in the following section replace it with the path that is in your settings.cfg file set for NGSDATA\_DIR
 Same goes for <readsbysampledir>, <rawdatadir> and <readdatadir>
 
@@ -203,7 +206,7 @@ mkdir meta
 \end{lstlisting}
 }
  
-\item Create Primer and Ref directories and copy RunFile into meta directory. You may have to search a bit for the RunFile
+\item Create Primer and Ref directories and copy RunFile(See Section~\ref{sec:RunFile}) into meta directory. You may have to search a bit for the RunFile
 {\tiny
 \begin{lstlisting}[language=bash]
 pushd meta
@@ -215,7 +218,7 @@ cp <path_to_primer_fasta_files> meta/Primer/
 \end{lstlisting}
 }
 
-\item You will need to modify the RunFile to ensure it conforms to the RunFile specification(Read below in \ref{RunFile})
+\item You will need to modify the RunFile to ensure it conforms to the RunFile specification(Read below in Section~\ref{sec:RunFile})
 
 \item Change directory into the R\_ directory that is not the prewash directory
 {\tiny
@@ -311,23 +314,24 @@ genSummary.sh
 \section{Config Files}
 
 \subsection{settings.cfg}
-This is the main configuration file that controls how all of the libraries and scripts intereact in the various pyWrairLib modules. When pyWrairLib is installed this file is copied into a directory called config inside of the PYTHONHOME or VIRTUAL\_ENV environmental variable.
-
+\label{sec:settings.cfg}
+This is the main configuration file that controls how all of the libraries and scripts intereact in the various pyWrairLib modules. When pyWrairLib is installed this file is copied into a directory called config inside of the PYTHONHOME or VIRTUAL\_ENV environmental variable.\\
 \textit{You can see where this is by issuing}
-
 \begin{lstlisting}[language=bash]
 echo $PYTHONHOME
 \end{lstlisting}
-
 \textit{-- or --}
-
 \begin{lstlisting}[language=bash]
 echo $VIRTUAL_ENV
 \end{lstlisting}
-
-\textbf{If nothing is displayed then you need to locate your system's default python home.}
-
-\textbf{??Not sure how?? Google it or ask somebody that knows python.}
+\textbf{If nothing is displayed then you need to locate your system's default python home.}\\
+\textbf{??Not sure how?? Google it or ask somebody that knows python.}\\
+This file is self documented so you will need to view it to see what each configuration setting is for. This file is parsed using the Python Module ConfigObj\\
+Here are two links to get you started on the basics of a ConfigObj config file:
+\begin{itemize}
+ \item \url{http://www.voidspace.org.uk/python/configobj.html#config-files}
+ \item \url{http://www.voidspace.org.uk/python/configobj.html#the-config-file-format}
+\end{itemize}
 
 \subsection{MidParse.conf}
 This file is used by the roche software to demultiplex sff files. The contents of the file contain a mapping between a name and a barcode sequence.
@@ -343,7 +347,9 @@ MID
 
 {\em More information on this file can be found in the Roche documentation Part C under MIDConfig.parse. An example file that can be used is included in the config directory along with the settings.cfg file}
 
- \subsection{RunFile}
+\subsection{RunFile}
+\label{sec:RunFile}
+
 Run files are simply a file that links a samplename to the following information about that sample
 \begin{itemize}
  \item Region number
@@ -460,7 +466,7 @@ optional arguments:
 \end{lstlisting}
 
 \subsubsection{demultiplex}
-While there are many options for this command, only the -r and -s options are typically used as the rest of the options pull defaults from the settings.cfg file(See above).
+While there are many options for this command, only the -r and -s options are typically used as the rest of the options pull defaults from the settings.cfg file(See Section~\ref{sec:settings.cfg}).
 \begin{itemize}
  \item -r Specifies the location of the runfile so it knows how to map sample names with what barcode/region they are from
  \item -s Specifies the location of the sff directory that contains the multiplexed sff files to demultiplex
@@ -518,7 +524,7 @@ optional arguments:
 
 \subsubsection{mapSamples.py}
 mapSamples.py is used to map samples to a reference genome using the Roche Newbler mapper.
-It derives all of its parameters from a RunFile.
+It derives all of its parameters from a RunFile(See Section~\ref{sec:RunFile}).
 It will create GsMapper project directories inside of the directory that you execute it from. It is usually best to create a directory to run 
 this command from within.
 

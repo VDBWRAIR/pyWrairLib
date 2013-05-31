@@ -168,18 +168,38 @@ def exec_recursive( path, func, *args, **kwargs ):
     '''
         Execute func recursively on every file and directory inside of path
     '''
+    all_ret = []
     for root, dirs, files in os.walk( path ):
-        [func( os.path.join( root, fd ), *args, **kwargs ) for fd in dirs]
-        [func( os.path.join( root, fd ), *args, **kwargs ) for fd in files]
+        all_ret += [func( os.path.join( root, fd ), *args, **kwargs ) for fd in dirs]
+        all_ret += [func( os.path.join( root, fd ), *args, **kwargs ) for fd in files]
+    return all_ret
 
 def set_config_perms( path ):
     '''
         Change perms to what settings are set to
     '''
-    owner = int( config['DEFAULT']['Owner'] )
-    group = int( config['DEFAULT']['Group'] )
-    perms = int( config['DEFAULT']['Perms'], 8 )
-    set_perms( path, perms, owner, group )
+    g = config['DEFAULT']['Group']
+    p = config['DEFAULT']['Perms']
+
+    fail_flag = False
+
+    try:
+        group = int( g )
+    except ValueError as e:
+        logging.warning( "Group value({}) in config is not a valid integer value".format( g ) )
+        fail_flag = True
+
+    try:
+        perms = int( p, 8 )
+    except ValueError as e:
+        logging.warning( "Perms value({}) in config is not a valid Octal integer value".format( p ) )
+        fail_flag = True
+
+    if fail_flag:
+        logging.warning( "Not attempting to set permissions on {} because of above errors".format( path ) )
+        return False
+
+    return set_perms( path, perms, group )
 
 def set_config_perms_recursive( path ):
     set_config_perms( path )
@@ -194,35 +214,38 @@ def make_readonly( path ):
 def make_readonly_recursive( rootpath ):
     set_config_perms_recursive( rootpath )
 
-def set_perms( path, perms, uid=os.getuid(), gid=os.getgid(), recursive=False ):
+def set_perms( path, perms, gid=os.getgid(), recursive=False ):
     '''
         Sets permissions, uid, gid on a path
     '''
+    succeeded = True
     if not os.path.isabs( path ):
         raise ValueError( "{} is not a valid abs path".format(path) )
 
-    if not isinstance( uid, int ):
-        uid = int( uid )
     if not isinstance( gid, int ):
-        gid = int( uid )
+        gid = int( gid )
+
     if not isinstance( perms, int ):
         perms = int( perms, 8 )
         
-    logger.debug( "Changed permissions of %s to %s" % (path, perms) )
-    logger.debug( "Changed user:gid of %s to %s:%s" % (path, uid, gid) )
-
     try:
+        logger.debug( "Changed permissions of %s to %s" % (path, perms) )
         os.chmod( path, perms )
-        os.chown( path, uid, gid )
     except OSError as e:
+        succeeded = False
         logger.warning( str(e) )
 
+    try:
+        logger.debug( "Changed gid of %s to %s" % (path, gid) )
+        os.chown( path, os.getuid(), gid )
+    except OSError as e:
+        succeeded = False
+        logger.warning( "{}: Are you in group {}?".format(str(e),gid) )
+
     if recursive:
-        exec_recursive( path, set_perms, perms, uid, gid )
+        return all( exec_recursive( path, set_perms, perms, gid ) )
+    else:
+        return succeeded
 
-def set_perms_recursive( path, perms, uid=os.getuid(), gid=os.getgid() ):
+def set_perms_recursive( path, perms, gid=os.getgid() ):
     make_readonly_recursive( path )
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

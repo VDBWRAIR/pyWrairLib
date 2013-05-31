@@ -1,10 +1,12 @@
-import nose
 import tempfile
 import os
 import os.path
 import shutil
 from datetime import date
 from configobj import ConfigObj
+from copy import deepcopy
+
+from nose.tools import eq_
 
 from .. import util
 from common import BaseClass, ere, create
@@ -131,6 +133,34 @@ class TestEnsureValidAbsPath( BaseClass ):
         ''' Invalid relative path should return False '''
         self.pathtestall( 'bogus/path/sjaneuwjfhsue', False )
 
+class TestSetConfigPerms( BaseClass ):
+    ''' Ensure proper errors are reported '''
+    @classmethod
+    def setUpClass( self ):
+        from wrairlib import settings
+        self.config_copy = settings.parse_config()
+
+    def tearDown( self ):
+        super( TestSetConfigPerms, self ).setUp()
+        util.config = deepcopy( self.config_copy )
+
+    def test_badvalues_gid( self ):
+        ''' Incorrect values for gid '''
+        util.config['DEFAULT']['Group'] = os.getgid() + 1
+        eq_( util.set_config_perms( self.tempdir ), False )
+
+    def test_badvalues_perms( self ):
+        ''' Incorrect values for perms '''
+        util.config['DEFAULT']['Perms'] = '0999'
+        eq_( util.set_config_perms( self.tempdir ), False )
+
+    def test_goodvalue( self ):
+        ''' Ensure Return value working '''
+        util.config['DEFAULT']['Owner'] = os.getuid()
+        util.config['DEFAULT']['Group'] = os.getgid()
+        util.config['DEFAULT']['Perms'] = '0755'
+        eq_( util.set_config_perms( self.tempdir ), True )
+
 class TestSetPerms( BaseClass ):
     '''
         Not testing gid, uid perms change on purpose
@@ -144,7 +174,7 @@ class TestSetPerms( BaseClass ):
         self.create_( 'file', 'file' )
         self.create_( os.path.join( 'subdir', 'subsubdir' ), 'dir' )
         self.create_( 'link', 'link' )
-        util.set_perms( self.tempdir, '766', recursive=True )
+        eq_( util.set_perms( self.tempdir, '766', recursive=True ), True )
 
 class TestGetAllSff( BaseClass ):
     def fake_demultiplex_dir( self, name='454Reads.{}.sff', regions=2, num=3 ):
