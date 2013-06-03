@@ -143,15 +143,19 @@ class GenericNameFormatter( object ):
         attributes = {}
         # Compile a list of attributes
         for k,v in formats.items():
-            # The names need to be name_in|out_whatever
-            try:
-                name, inout, _ = k.split( '_' )
-            except ValueError as e:
-                raise ValueError( "Incorrect format given {}".format(k) )
-            attrname = "%s_format" % name
-            if attrname not in attributes:
-                attributes[attrname] = {}
-            attributes[attrname][inout] = v
+            # Ignores non format keys
+            if '_in_' in k or '_out_' in k:
+                # The names need to be name_in|out_whatever
+                try:
+                    name, inout, _ = k.split( '_' )
+                except ValueError as e:
+                    raise ValueError( "Incorrect attribute format given {}. Valid attributes should be <name>_in|out_format.".format(k) )
+                if not name:
+                    raise ValueError( "Attribute format {} does not contain a name at the beginning".format(k) )
+                attrname = "%s_format" % name
+                if attrname not in attributes:
+                    attributes[attrname] = {}
+                attributes[attrname][inout] = v
         if len( attributes ) > 0:
             return attributes
         else:

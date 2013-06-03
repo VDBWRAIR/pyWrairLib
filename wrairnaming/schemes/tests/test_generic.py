@@ -1,4 +1,5 @@
 import unittest
+from nose.tools import eq_, raises
 import sys
 import re
 import nose
@@ -136,12 +137,15 @@ class GenericNameFormatterTest( unittest.TestCase ):
         except ValueError as e:
             assert str( e ) == 'Incorrect amount of formats provided'
 
-    def test_getformatattrs2( self ):
-        try:
-            self.inst._get_format_attrs( {'bob':1, 'sally':2} )
-            assert False, 'Failed to raise ValueError for invalid formatted dict keys'
-        except ValueError as e:
-            assert 'Incorrect format given' in str( e ), "Expected Incorrect format given in exception message " + str( e )
+    def test_getformatattrs_ignore( self ):
+        ''' _get_format_attrs should ignore anything without _in_ or _out_ '''
+        attrs = self.inst._get_format_attrs( {'bob':1, 'sally':2, 'name_in_format':'', 'name_out_format':''} )
+        eq_( {'name_format': {'in': '', 'out': ''}}, attrs )
+
+    @raises( ValueError )
+    def test_incomplete( self ):
+        ''' Test to make sure _in_ _out_ values are caught '''
+        self.inst._get_format_attrs( {'_in_':1, '_out_':2} )
 
     def test_invalidmissingin( self ):
         del self.mock_section['attr2_in_format']
@@ -185,6 +189,3 @@ class GenericNameFormatterTest( unittest.TestCase ):
             assert False, 'InvalidFormat not raised'
         except InvalidFormat as e:
             assert True, 'InvalidFormat raised'
-
-if __name__ == '__main__':
-    nose.run()
