@@ -22,7 +22,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 def scripts( ):
-    return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' ) if not fnmatch( f, '*.swp' )]
+    return [os.path.join( 'bin', f ) for f in os.listdir( 'bin' ) if not fnmatch( f, '*.swp' ) and not fnmatch( f, '*.pyc' )]
 
 def set_version():
     ''' Sets the version using the current tag and revision in the git repo '''
