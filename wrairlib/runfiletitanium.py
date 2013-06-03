@@ -25,7 +25,7 @@ class RunFile( object ):
                 - date - Date of the run this runfile is for
                 - samples - List of RunFileSamples
                 Optional:
-                - rtype - Run type. Not sure what this is exactly. Will use PTP as efault
+                - rtype - Run type. Not sure what this is exactly. Will use PTP as default
                 - id - Description with no spaces in it. Will use 'Description' as default
                 - regions - Either a number of regions or a sequence of region numbers. Will gather from sample list
         """
