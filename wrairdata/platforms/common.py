@@ -1,0 +1,2 @@
+class PlatformData( object ):
+    pass
