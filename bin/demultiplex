@@ -1,39 +1,5 @@
 #!/usr/bin/env python
 
-#############################################################################################
-##  Author: Tyghe Vallard
-##  Email: vallardt@gmail.com
-##  Date: 3/18/2013
-##  Purpose:
-##      This script is intended to automatically demultiplex a 454 Run
-##      The simplest invocation is by using the -d option and specifying a
-##      Image Processing directory from a 454 Run(This directory has an sff directory
-##       immediately inside of it)
-##      The command run by demultiplex is:
-##          sfffile -s <midlist> -mcf <MIDConfig.parse> sfffile
-##      This command is run on each sfffile found(which should be 1 per region)
-##      It creates a directory named after the region:
-##      This creates a single sff file for each Midkey that has > 0 reads that match it
-##       inside the appropriate region folder
-##      Each file is named 454Reads.<midname from MIDConfig.parse>.sff
-##      demultiplex then parses the Runfile.txt file and renames each 454Reads file
-##      by the mapping inside the Runfile
-##      
-##      You can also invoke it by using -r & -s to manually specify a runfile and sffdir
-##      Other options include:
-##          -mcf Midkey config parse file. For reference look at /opt/454/conf/MIDConfig.parse
-##          -sfffilecmd Use this to override the sfffile command path
-##          -o Where to demultiplex the reads to
-##          --rename Only rename files in a previously demultiplexed directory
-##          --demultiplex Only demultiplex the files, don't rename them
-##  Version:
-##      1.0 -
-##          Initial Script
-##          Needs refinement with dealing with the arguments as it is using some static
-##           paths.
-##          Logging needs to also go to stdout in some ways to give feedback to the user
-#############################################################################################
-
 import sys
 import os
 import os.path
@@ -57,15 +23,9 @@ from wrairdata import demultiplex
 
 def main( args ):
     logger.info( "=== Demultiplex (pyWrairLib {}) ===".format( __version__ ) )
-    # There is a bug here with dealing with the midparsefile
-    # You cannot specify -mcf and -d using this tecnique
-    if False: #and args.procdir:
-        runfile = glob( os.path.join( args.procdir, 'meta', '*Runfile*' ) )[0]
-        sffdir = os.path.join( args.procdir, 'sff' )
-        # Try 3 directories below procdir for MidParse.conf or use default
-        midparsefile = os.path.join( os.path.dirname( os.path.dirname( os.path.dirname( args.procdir ) ) ), 'MidParse.conf' )
-    else:
-        runfile, sffdir, midparsefile = args.runfile, args.sffdir, args.midparsefile
+
+    # Lazy variables
+    runfile, sffdir, midparsefile = args.runfile, args.sffdir, args.midparsefile
 
     # Make sure midparsefile exists or use the command line arg
     if not os.path.exists( midparsefile ):
@@ -89,12 +49,13 @@ def main( args ):
         logger.info( "Renaming demultiplexed sff files" )
         demultiplex.rename_demultiplexed_sffs( outputdir, runfile )
 
+    logger.info( "Finished demultiplexing" )
+
 def getargs( ):
     parser = ArgumentParser( )
 
     default_output_dir = os.path.join( os.getcwd(), 'demultiplexed' )
 
-    #parser.add_argument( '-d', '--image-processing-dir', dest='procdir', help='Image processing directory path' )
     parser.add_argument( '-r', '--runfile', dest='runfile', help='Path to the Runfile' )
     parser.add_argument( '-s', '--sff-dir', dest='sffdir', help='Path to directory containing sff files' )
     parser.add_argument( '-o', '--output-dir', dest='outputdir', default=default_output_dir, help='Output directory path[Default: %s]' % default_output_dir )
@@ -112,9 +73,6 @@ def getargs( ):
     return args
 
 def check_args( args ):
-    #if args.procdir:
-    #    return True
-
     if args.runfile and args.sffdir:
         return True
 
