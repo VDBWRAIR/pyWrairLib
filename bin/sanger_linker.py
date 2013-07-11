@@ -37,7 +37,7 @@ def rename_sanger_file( sangerfile ):
     if not m:
         logger.error( "{} does not seem to be a valid sanger raw read name.".format(sf) )
         logger.debug( "Could not match against {}".format( pat.pattern ) )
-        return
+        raise ValueError( "{} not a valid sanger name".format( sf ) )
 
     return f.rawread_format.output_format.format( **m.groupdict() )
 
@@ -95,11 +95,18 @@ def linkrename( sangerfiles ):
     logger.debug( "Files to rename: {}".format( sangerfiles ) )
     for sfile in sangerfiles:
         sfile = os.path.abspath( sfile )
-        dst = get_dst( sfile )
+        try:
+            dst = get_dst( sfile )
+        except ValueError:
+            logger.error( "Ruh row raggie! Could not get destination for {}".format(sfile) )
+            continue
+
         if os.path.exists( dst ):
-            logger.debug( "{} already exists. Is {} a unique filename?".format(
-                dst, sfile )
-            )
+            linkpath = os.readlink( dst )
+            if dirname( linkpath ) != dirname( sfile ):
+                logger.error( "Destination({}) for {} already exists".format(
+                    dst, sfile)
+                )
             logger.info( "{} will be skipped as it already exists".format(sfile) )
             continue
         else:
