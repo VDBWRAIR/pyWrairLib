@@ -6,7 +6,7 @@ from datetime import date
 from configobj import ConfigObj
 from copy import deepcopy
 
-from nose.tools import eq_
+from nose.tools import eq_, raises
 
 from .. import util
 from common import BaseClass, ere, create
@@ -222,7 +222,7 @@ def test_rss( ):
 def test_rftsm( ):
     pass
 
-class Mock():
+class Mock( object ):
     def __setattr__( self, name, value ):
         self.__dict__[name] = value
     
@@ -290,3 +290,18 @@ class TestRunfileMapping( BaseClass ):
         mp = fixtures.MIDPREFIX
         expect = {1:{'454Reads.'+mp+'RL1.sff':'Sample1__1__RL1__2013_05_01__pH1N1.sff', '454Reads.'+mp+'RL2.sff':'Sample2__1__RL2__2013_05_01__pH1N1.sff'},2:{'454Reads.'+mp+'RL1.sff':'Sample1__2__RL1__2013_05_01__pH1N1.sff', '454Reads.'+mp+'RL2.sff':'Sample2__2__RL2__2013_05_01__pH1N1.sff'}}
         ere( expect, result )
+
+class TestDateFromPath( BaseClass ):
+    def test_hasdate( self ):
+        ''' test a path with a date in it '''
+        date = '1979_01_01'
+        os.mkdir( date )
+        result = util.date_from_path( os.path.join( self.tempdir, date ) )
+        eq_( date, result )
+
+    @raises( ValueError )
+    def test_invaliddate( self ):
+        ''' test a path with invalid date '''
+        date = '19790101'
+        os.mkdir( date )
+        result = util.date_from_path( os.path.join( self.tempdir, date ) )

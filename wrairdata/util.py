@@ -7,6 +7,7 @@ import subprocess
 import datetime
 import logging
 import fnmatch
+import re
 
 from wrairlib.runfiletitanium import RunFile, RunFileSample
 from wrairnaming import Formatter
@@ -36,7 +37,7 @@ def abspath_or_error( path ):
     try:
         os.stat( path )
     except OSError as e:
-        raise ValueError( "{} is not a valid abs path".format(path) )
+        raise ValueError( "{} is not a valid abs path({})".format(path,e) )
     return path
 
 def get_all_( datadir, fmatch ):
@@ -249,3 +250,19 @@ def set_perms( path, perms, gid=os.getgid(), recursive=False ):
 
 def set_perms_recursive( path, perms, gid=os.getgid() ):
     make_readonly_recursive( path )
+
+def date_from_path( path ):
+    '''
+        Get the run date from a path
+
+        @param path - Directory path probably pointing to SFFCreator_out. Should
+            contain a run date in it.(Easiest to supply abspath)
+        @return date string YYYY_MM_DD of the found date in the path
+    '''
+    # Ensure abs path
+    path = os.path.abspath( path )
+    m = re.search( '\d{4}_\d{2}_\d{2}', path )
+    if not m:
+        raise ValueError( "{} needs to contain a run date of the format YYYY_MM_DD".format(path) )
+    return m.group( 0 )
+
