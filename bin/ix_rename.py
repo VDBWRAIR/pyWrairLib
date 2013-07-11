@@ -21,10 +21,14 @@ def main( ):
     region = args.region
 
     # Get sffs
+    logger.info( "Starting the IonTorrent linking" )
     sfflist = glob( os.path.join( sffpath, 'IonXpress_*.sff' ) )
+    logger.debug( "Sff files to link: {}".format(sfflist) )
     mapping = get_mapping( sfflist, runfile, region )
+    logger.debug( "Mapping to use: {}".format(mapping) )
     path = create_readdir( runfile.date, runfile.platform )
     link_sffs( mapping, path )
+    logger.info( "Finished linking" )
 
 def link_sffs( mapping, path ):
     for src, dst in mapping.items():
@@ -36,7 +40,7 @@ def link_sffs( mapping, path ):
             logger.info( "{} already exists. Skipping".format( dst ) )
     
 def create_readdir( date, platform ):
-    date = date.strftime( '%Y_%d_%m' )
+    date = date.strftime( '%Y_%m_%d' )
     path = os.path.join( config['Paths']['DataDirs']['READDATA_DIR'], platform, date )
     try:
         os.mkdir( path )
@@ -55,7 +59,20 @@ def get_mapping( sfflist, runfile, region ):
             logger.error( "!!! It will be skipped\n" )
             continue
         mid = mid.group( 1 )
-        sample = runfile[int(region)]['IX'+mid]
+        try:
+            sample = runfile[int(region)]
+        except KeyError:
+            logger.critical( "Runfile does not have a region {}".format(region) )
+            sys.exit( 1 )
+        try:
+            sample = sample['IX'+mid]
+        except KeyError:
+            logger.error( 
+                "Runfile does not contain an entry for {} for region {}. It will be skipped".format(
+                    os.path.basename(sff), region
+                )
+            )
+            continue
         newname = util.demultiplex_sample_name( sample, runfile.platform )
         mapping[sff] = newname
     return mapping
