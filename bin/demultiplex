@@ -23,9 +23,15 @@ from wrairdata import demultiplex
 
 def main( args ):
     logger.info( "=== Demultiplex (pyWrairLib {}) ===".format( __version__ ) )
-
-    # Lazy variables
-    runfile, sffdir, midparsefile = args.runfile, args.sffdir, args.midparsefile
+    # There is a bug here with dealing with the midparsefile
+    # You cannot specify -mcf and -d using this tecnique
+    if False: #and args.procdir:
+        runfile = glob( os.path.join( args.procdir, 'meta', '*Runfile*' ) )[0]
+        sffdir = os.path.join( args.procdir, 'sff' )
+        # Try 3 directories below procdir for MidParse.conf or use default
+        midparsefile = os.path.join( os.path.dirname( os.path.dirname( os.path.dirname( args.procdir ) ) ), 'MidParse.conf' )
+    else:
+        runfile, sffdir, midparsefile = args.runfile, args.sffdir, args.midparsefile
 
     # Make sure midparsefile exists or use the command line arg
     if not os.path.exists( midparsefile ):
@@ -56,6 +62,7 @@ def getargs( ):
 
     default_output_dir = os.path.join( os.getcwd(), 'demultiplexed' )
 
+    #parser.add_argument( '-d', '--image-processing-dir', dest='procdir', help='Image processing directory path' )
     parser.add_argument( '-r', '--runfile', dest='runfile', help='Path to the Runfile' )
     parser.add_argument( '-s', '--sff-dir', dest='sffdir', help='Path to directory containing sff files' )
     parser.add_argument( '-o', '--output-dir', dest='outputdir', default=default_output_dir, help='Output directory path[Default: %s]' % default_output_dir )
@@ -73,6 +80,8 @@ def getargs( ):
     return args
 
 def check_args( args ):
+    #if args.procdir:
+    #    return True
     if args.runfile and args.sffdir:
         return True
 
