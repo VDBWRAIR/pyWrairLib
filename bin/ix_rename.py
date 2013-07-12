@@ -31,11 +31,16 @@ def main( ):
     logger.info( "Finished linking" )
 
 def link_sffs( mapping, path ):
+    logger.debug( "Mapping used {}".format( mapping ) )
     for src, dst in mapping.items():
         dst = os.path.join( path, dst )
         try:
-            os.symlink( os.path.abspath(src), dst )
-            logger.info( "Linking {} to {}".format(src,dst) )
+            if os.path.isdir( os.path.dirname( src ) ):
+                os.symlink( os.path.abspath(src), dst )
+                logger.info( "Linking {} to {}".format(src,dst) )
+            else:
+                logger.error( "Refusing to create bad link {} -> {}".format(
+                    src,dst))
         except OSError as e:
             logger.info( "{} already exists. Skipping".format( dst ) )
     
