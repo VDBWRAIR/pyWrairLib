@@ -104,12 +104,15 @@ def link_read_by_sample( readfilepath, outputbase, matchpattern ):
         os.mkdir( samplenamedir )
         set_config_perms( samplenamedir )
 
-    if os.path.exists( dst ):
+    if os.path.islink( dst ):
         logger.warning( "%s already exists. Skipping" % dst )
     else:
         # Now symlink the file to the new destination
         logger.info( "Symlinking %s to %s" % (readfilepath, dst) )
-        os.symlink( readfilepath, dst )
+        try:
+            os.symlink( readfilepath, dst )
+        except OSError as e:
+            logger.critical( "Somehow {} already exists even though I checked for it" )
 
 def get_platforms( ):
     return config['Platforms']
