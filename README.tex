@@ -62,6 +62,7 @@ for pkg in pyRoche NGSCoverage; do cd ${pkg}; rm -rf build; python setup.py inst
 
 \subsection{Install pyWrairLib}
 \begin{enumerate}
+ \item Copy config/settings.cfg.example to config/settings.cfg
  \item Edit the config/settings.cfg file inside of the pyWrairLib folder to suit your environment. More on settings.cfg Section~\ref{sec:settings.cfg} below
  \item Execute the installer
 \begin{lstlisting}
@@ -133,6 +134,39 @@ The full documentation for each of the scripts is detailed at the bottom of the 
  \end{itemize}
 \subsubsection{Misc/Undocumented/InDevelopment}
  \begin{itemize}
+  \item create\_ngs\_structure
+    \begin{itemize}
+        \item Creates the NGS data folder structure from a given config file
+    \end{itemize}
+  \item sff\_to\_fastq.py
+    \begin{itemize}
+        \item Converts sff files to fastq format(Single files or directories of sff files)
+    \end{itemize}
+  \item sanger\_linker.py
+    \begin{itemize}
+        \item Moves raw sanger files from RawData into respective ReadData folder and renames them according to config file specs
+    \end{itemize}
+  \item base\_qual.py
+    \begin{itemize}
+        \item Parses a .qual file into statistics about each base position
+    \end{itemize}
+  \item base\_qual\_plot.py
+    \begin{itemize}
+        \item Plots statistics generated from base\_qual.py
+    \end{itemize}
+  \item amb\_scan.py
+    \begin{itemize}
+        \item Simple script to count all Ambiguities(Non ATGC) in a region of an assembled .bam file
+    \end{itemize}
+  \item ix\_rename.py
+    \begin{itemize}
+        \item Similar to sanger\_linker.py but for IonTorrent raw reads
+    \end{itemize}
+  \item find\_broken\_reads
+    \begin{itemize}
+        \item Simple shell script to locate any broken symlinks. Useful to check NGSData/ReadsBySample directory.
+    \end{itemize}
+  \item run.sh
   \item bestblast
   \item entrez\_helper
   \item reads\_for\_contig
@@ -278,7 +312,7 @@ cd <YYYY_MM_DD>
 ln -s <path to NGSData>RawReads/<sequencer type>/<run date of sequencer>/meta .
 \end{lstlisting}
 }
-\item Copy any needed references into the meta/Ref folder
+\item Copy any needed references into the meta/Ref folder(make sure the meta/Ref folder exists prior to this)
 \item Create a directory for the analysis with whatever name you want with a workfile directory to place summarys and RunFile
 {\tiny
 \begin{lstlisting}[language=bash]
@@ -315,6 +349,7 @@ genSummary.sh
 
 \subsection{settings.cfg}
 \label{sec:settings.cfg}
+At a very minimum, you have to set the NGSDATA\_DIR path to point to the location where you want all of your sequence data to reside inside of this file.\\
 This is the main configuration file that controls how all of the libraries and scripts intereact in the various pyWrairLib modules. When pyWrairLib is installed this file is copied into a directory called config inside of the PYTHONHOME or VIRTUAL\_ENV environmental variable.\\
 \textit{You can see where this is by issuing}
 \begin{lstlisting}[language=bash]
