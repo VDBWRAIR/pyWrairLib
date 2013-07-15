@@ -18,7 +18,15 @@ def parse_config( pathtoconfig=path_to_config ):
     return ConfigObj( pathtoconfig, interpolation='Template' )
 
 config = parse_config( path_to_config )
-LOG_LEVEL = getattr( logging, config['DEFAULT']['LOG_LEVEL'] )
+try:
+    LOG_LEVEL = getattr( logging, config['DEFAULT']['LOG_LEVEL'] )
+except KeyError as e:
+    # Maybe DEFAULT or LOG_LEVEL was removed from config?
+    sys.stderr.write( "Config file {} does not have a section named DEFAULT that " \
+        "contains a subsection LOG_LEVEL\n".format( path_to_config ) )
+    sys.stderr.write( "prefix for install is {}\n".format( prefix ) )
+    sys.stderr.write( "script path is {}\n".format( __file__ ) )
+    sys.exit( 1 )
 
 def setup_logger( *args, **kwargs ):
     ''' Setup logging and return logger instance '''

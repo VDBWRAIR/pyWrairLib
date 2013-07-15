@@ -74,7 +74,10 @@ python setup.py install
 \section{The Pipeline}
 
 \subsection{Introduction}
-The concept of The Pipeline is quite simple. Execute one script after another performing one task after another on the data until it is processed. Because NGS Data is so large, it is best to run most of these scripts on a Multiprocessor/Multicore system that has more than 4 CPUs/cores
+The concept of The Pipeline is quite simple. Execute one script after another performing one task after another on the data until it is processed. Because NGS Data is so large, it is best to run most of these scripts on a Multiprocessor/Multicore system that has more than 4 CPUs/cores \\
+\\
+There is a complete walkthrough under the docs directory called Example.txt that should help you walk through the process \\
+\\
 You can get a rough guess at what to set for this variable by issuing the following command:
 \begin{lstlisting}
 cat /proc/cpuinfo | grep processor | wc -l

@@ -199,7 +199,12 @@ def main( ):
     runfile = args.runfile
     with open( runfile ) as fh:
         logger.debug( "Parsing Runfile %s" % runfile )
-        rf = RunFile( fh )
+        try:
+            rf = RunFile( fh )
+        except ValueError as e:
+            logger.critical( "There is an error with the runfile {}".format(runfile) )
+            logger.error( "Error was {}".format(e) )
+            sys.exit( 1 )
         logger.info( "%d samples to map" % len( rf.samples ) )
         jobs = []
         failed_samples = []
@@ -254,6 +259,8 @@ def main( ):
 
         for sample, err in failed_samples:
             logger.error( "%s failed due to %s" % (sample, err) )
+
+    logger.info( "=== {} mapSamples.py has finished ===" )
 
 if __name__ == '__main__':
     main()

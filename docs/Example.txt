@@ -1,0 +1,76 @@
+===== Installation =====
+# Download and unpack the pipeline from github
+wget https://github.com/VDBWRAIR/pyWrairLib/archive/master.zip && unzip master.zip
+mv master pyWrairLib
+cd pyWrairLib
+
+# You only have to initialize the virtualenv the first time you install
+#  it can be skipped if you are upgrading
+virtualenv --distribute /home/username/testinstall
+# You always need to activate the virtualenv though(especially when running the 
+#  pipeline
+source /home/username/testinstall/bin/activate
+python setup.py install
+
+# Setup the settings file by first renaming the settings.cfg.example to settings.cfg
+mv /home/username/testinstall/config/settings.cfg{.example,}
+# Edit the settings.cfg
+# More info on this in the README.pdf file
+#  !!!Make sure you change the NGSDATA_DIR!!! 
+#  The rest of this document will assume you used /home/username/NGSData as the value
+#   for NGSDATA_DIR inside the settings.cfg file
+vi /home/username/testinstall/config/settings.cfg 
+ln -s /home/username/testinstall/config/MidParse.conf /home/username/NGSData/
+# Create the data structure
+create_ngs_structure 
+
+===== Running the Pipeline =====
+# Always make sure you have the virtual environment activated
+source /home/username/testinstall/bin/activate
+
+
+========= Data Setup ==========
+# Copy Raw Data for Roche 454 instrument
+cd /home/username/NGSData/RawData/Roche454/
+mkdir R_2013_07_03
+cd R_2013_07_03
+rsync -av --progress --exclude demultiplexed /media/usbdisk/2013_07_03/R_2013_07_03_16_46_57_FLX12070283_Administrator_03_07_2013_flu_den4/D_2013_07_03_08_29_10_vnode_signalProcessing .
+
+# Setup the meta directory with all the information useful for a mapping project
+mkdir -p meta/{Ref,Primer}
+
+# Now copy the primers and references for this project into their respective 
+#  folders inside of the meta directory you just made
+
+# Demultiplex the large multiplexed sff files into individual sample sff files
+cd D_2013_07_03_08_29_10_vnode_signalProcessing
+ln -s $(pwd)/../meta .
+demultiplex -s sff -r meta/RunfileFlxPlus_2013_07_03.txt
+
+# Link the sample sff files into the ReadsBySample directory under their name
+link_reads 
+
+# Setup ReadData directory(it is a simple symbolic link)
+ln -s $(pwd) /home/username/NGSData/ReadData/Roche454/
+
+========= Mapping Analysis ==========
+# Create a directory to hold the analysis and change to that directory
+mkdir -p /home/username/Analysis/2013_07_03
+cd !$
+ln -s /home/username/NGSData/RawData/Roche454/R_2013_07_03/meta .
+
+# Create a sub directory for this specific analysis
+mkdir Test1
+cd Test1/
+# Create a sub directory to hold summary type files
+mkdir workfile
+cp ../meta/RunfileFlxPlus_2013_07_03.txt workfile/
+
+# Make any adjustments to the Runfile for this analysis
+vi workfile/RunfileFlxPlus_2013_07_03.txt 
+
+# Map the samples
+mapSamples.py workfile/RunfileFlxPlus_2013_07_03.txt 
+ 
+# Generate any summaries
+genSummary.sh 

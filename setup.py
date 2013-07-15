@@ -70,7 +70,7 @@ setup(
     scripts = scripts(),
     data_files = [
         ('config', glob.glob( 'config/*' )),
-        ('docs', ['README.pdf',]),
+        ('docs', ['docs/README.pdf','docs/Example.txt']),
     ],
     requires = [
         "xlwt",
@@ -80,5 +80,5 @@ setup(
         "pyRoche",
         "NGSCoverage"
     ],
-    long_description=read('README.md'),
+    long_description=read('docs/README.tex'),
 )
