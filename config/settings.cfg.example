@@ -1,8 +1,10 @@
 [Paths]
-ANALYSIS_DIR = '/home/EIDRUdata/Analysis/PipelineRuns'
+# This is not used yet so don't worry about this
+# Eventually will help aid in automating analysis
+ANALYSIS_DIR = '<path to Analysis>'
 PRIMER_DIR = '${ANALYSIS_DIR}/Primer'
 # The main data directory
-NGSDATA_DIR = '/home/EIDRUdata/NGSData'
+NGSDATA_DIR = '<path to NGSData>'
 MIDPARSEDEFAULT = '${NGSDATA_DIR}/MidParse.conf'
 
     # Data Directories that contain Read data

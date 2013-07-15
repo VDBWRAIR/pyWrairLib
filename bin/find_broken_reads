@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ "${1}x" == "x" ]
+then
+    echo "Please specify a location to find broken links"
+    exit 1
+fi
+
+find $1 -mindepth 1| while read file
+do
+    if [ -h $file ]
+    then
+        if [ ! -e $(readlink $file) ]
+        then
+            ls -l $file
+            rm $file
+        fi
+    fi
+done | tee broken_links.lst

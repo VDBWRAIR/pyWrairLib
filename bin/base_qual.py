@@ -27,7 +27,7 @@ def parse_file( filename ):
     '''
         Parses the file into statistics about each base seen
 
-        @param filename - File path to parse
+        @param filename - File path to parse(.qual file)
         @return List of [(min, sum, avg, max, depth),...] for each base position.
     '''
     stats = []
@@ -75,9 +75,10 @@ def parse_read( seq_record, running_stats ):
         running_stats[i] = (minq, sumq, avgq, maxq, depth)
 
 def parse_args( ):
-    parser = ArgumentParser( )
+    parser = ArgumentParser( description='Parse a .qual file into statistics about'\
+        'each base' )
 
-    parser.add_argument( dest='inputfile', help='The file to parse' )
+    parser.add_argument( dest='inputfile', help='The qual file to parse' )
 
     return parser.parse_args()
 
