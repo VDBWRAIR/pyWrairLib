@@ -108,7 +108,8 @@ def runProject( projectdir, **kwargs ):
     return (projectdir, output, retcode)
 
 def getSffsFromPath( path ):
-    return [os.path.join( path, read ) for read in os.listdir( path ) if read[-4:] == '.sff']
+    return get_all_( path, '*.sff' )
+    #return [os.path.join( path, read ) for read in os.listdir( path ) if read[-4:] == '.sff']
 
 def getSangersFromPath( path ):
     return get_all_( path, '*.fastq' )
