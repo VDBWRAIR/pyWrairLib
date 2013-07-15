@@ -50,15 +50,16 @@ source <path_to_virtual_env>/bin/activate
 You will always do the above command to activate the virtual environment before running the pipeline.
 
 \subsection{Install the dependencies}
-\begin{lstlisting}
-pip install -r pyWrairLib/requirements.txt
-\end{lstlisting}
-
-\subsubsection{pyRoche and NGSCoverage}
-You may need to also install pyRoche and NGSCoverage separately as they are not currently published openly.
-\begin{lstlisting}
-for pkg in pyRoche NGSCoverage; do cd ${pkg}; rm -rf build; python setup.py install; cd ..; done;
-\end{lstlisting}
+\begin{enumerate}
+ \item Roche gsMapper software v2.8
+ \item Python 2.7
+ \item xlwt
+ \item configobj
+ \item numpy
+ \item biopython
+ \item pyRoche \url{https://github.com/VDBWRAIR/pyRoche}
+ \item NGSCoverage \url{https://github.com/VDBWRAIR/NGSCoverage}
+\end{enumerate}
 
 \subsection{Install pyWrairLib}
 \begin{enumerate}
