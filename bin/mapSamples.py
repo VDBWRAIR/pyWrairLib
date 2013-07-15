@@ -194,7 +194,7 @@ def main( ):
     else:
         global_setup( settings.config )
         logger.info( "=== mapSamples.py (pyWrairLib {}) ===".format( __version__ ) )
-        logger.info( "Usinge default config file from settings" )
+        logger.info( "Using default config file from settings" )
 
     runfile = args.runfile
     with open( runfile ) as fh:
