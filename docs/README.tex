@@ -570,13 +570,18 @@ this command from within.
 \paragraph{Usage}
 
 \begin{lstlisting}
-usage: mapSamples.py [-h] [-c CONFIGPATH] runfile
+usage: mapSamples.py [-h] [--include-platform platform [platform ...]]
+                     [-c CONFIGPATH]
+                     runfile
 
 positional arguments:
   runfile               Runfile path to use
 
 optional arguments:
   -h, --help            show this help message and exit
+  --include-platform platform [platform ...]
+                        List of platforms to include reads from. Default is to
+                        include all reads
   -c CONFIGPATH, --config CONFIGPATH
                         Config file to use
 \end{lstlisting}

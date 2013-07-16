@@ -10,9 +10,10 @@ from configobj import ConfigObj
 # the installed one
 if 'site-packages' in __file__:
     prefix = sys.prefix
+    path_to_config = os.path.join( prefix, 'config', 'settings.cfg' )
 else:
     prefix = os.path.dirname( os.path.dirname( __file__ ) )
-path_to_config = os.path.join( prefix, 'config', 'settings.cfg' )
+    path_to_config = os.path.join( prefix, 'config', 'settings.cfg.example' )
 
 def parse_config( pathtoconfig=path_to_config ):
     return ConfigObj( pathtoconfig, interpolation='Template' )

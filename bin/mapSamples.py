@@ -41,7 +41,7 @@ import logging
 from argparse import ArgumentParser
 
 from wrairlib.runfiletitanium import RunFile
-from wrairlib.util import get_all_
+from wrairdata import util, structure
 
 from wrairlib import settings
 from wrairlib import __version__
@@ -108,22 +108,28 @@ def runProject( projectdir, **kwargs ):
     return (projectdir, output, retcode)
 
 def getSffsFromPath( path ):
-    return get_all_( path, '*.sff' )
+    return util.get_all_( path, '*.sff' )
     #return [os.path.join( path, read ) for read in os.listdir( path ) if read[-4:] == '.sff']
 
 def getSangersFromPath( path ):
-    return get_all_( path, '*.fastq' )
+    return util.get_all_( path, '*.fastq' )
 
 def getReadsFromPath( path ):
     sffs = getSffsFromPath( path )
     sangers = getSangersFromPath( path )
     return sffs + sangers
 
-def addRun( projectdir, readspath ):
+def addRun( projectdir, readspath, include_platforms=[] ):
     if os.path.isdir( readspath ):
         reads = getReadsFromPath( readspath )
     else:
         reads = [readspath]
+
+    # Filter out reads if needed
+    reads = structure.filter_reads_by_platform( reads, include_platforms )
+    # If empty readlist for sample
+    if not len( reads ):
+        raise FailedCommand( "No reads for sample" )
 
     output = ""
     for read in reads:
@@ -174,6 +180,15 @@ def get_args( ):
     parser = ArgumentParser()
 
     parser.add_argument( dest='runfile', help = 'Runfile path to use' )
+    parser.add_argument( 
+        '--include-platforms',
+        metavar='platform',
+        nargs='+',
+        dest='includeplats',
+        default=[],
+        help='List of platforms to include reads from. '\
+                'Default is to include all reads from all platforms'
+    )
     parser.add_argument( '-c', '--config', dest='configpath', default=None, help='Config file to use' )
 
     args = parser.parse_args()
@@ -236,7 +251,10 @@ def main( ):
                 try:
                     newMapping( project_directory, force=True )
                     setRef( project_directory, sample.refgenomelocation )
-                    addRun( project_directory, os.path.join( readsbysampledir, sample.name ) )
+                    addRun( project_directory, 
+                        os.path.join( readsbysampledir, sample.name ),
+                        args.includeplats
+                    )
                 except FailedCommand as e:
                     failed_samples.append( (sample.name, str(e)) )
                     logger.critical( "Leaving sample %s unmapped due to errors" % sample.name )
