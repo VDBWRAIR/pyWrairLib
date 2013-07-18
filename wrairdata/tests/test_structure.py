@@ -1,8 +1,11 @@
 import nose
+import pdb
+from nose.tools import eq_,raises
 
 import tempfile
 import shutil
 import os.path
+from os.path import basename, join, dirname, abspath, isdir, exists
 import os
 import sys
 from glob import glob
@@ -10,7 +13,6 @@ import fnmatch
 from copy import deepcopy
 import re
 
-from nose.tools import eq_
 from common import BaseClass, ere
 import common
 
@@ -102,6 +104,14 @@ class TestDeterminePlatform( SBaseClass ):
             chkpath = path.format( platform )
             detected_plat = structure.determine_platform_from_path( chkpath )
             eq_( platform, detected_plat )
+
+    def test_symlinkpath( self ):
+        ''' make sure that symlinks are resolved(readlink) '''
+        readpath = join(self.readdatadir,self.platforms[0],'Sample1_1.fastq') 
+        open( readpath, 'w' ).close()
+        sympath = join( self.readsbysampledir, basename(readpath) )
+        os.symlink( readpath, sympath )
+        eq_( self.platforms[0], structure.determine_platform_from_path(sympath) )
 
     def test_dpfp_relpathbasename( self ):
         ''' Make sure all platforms can be pulled out of rel paths that are basedirs'''
@@ -225,3 +235,86 @@ class TestLinkReads( SBaseClass ):
                 for sl in glob( os.path.join( ed, '*' ) ):
                     linkpath = os.readlink( sl )
                     eq_( read_path, linkpath )
+
+class TestFilterReadsByPlatform( SBaseClass ):
+    def setUp( self ):
+        super( TestFilterReadsByPlatform, self ).setUp()
+        structure.create_directory_structure()
+
+    def mockreads( self ): 
+        reads = {
+            'Plat1':['Sample1_1.fastq'],
+            'Plat2':['Sample2_1.sff'],
+        }
+        return self.createreads( reads )
+
+    def createreads( self, reads ):
+        ''' Create mock ngs dir struct for reads '''
+        inreads = {}
+        for plat, reads in reads.items():
+            for read in reads:
+                rpath = os.path.join( self.tempdir, self.readdatadir, plat, read )
+                if os.path.exists( rpath ):
+                    continue
+                if plat not in inreads:
+                    inreads[plat] = []
+                inreads[plat].append(rpath)
+                # Touch the read file
+                open( rpath, 'w' ).close()
+                os.symlink( rpath, 
+                    os.path.join( self.tempdir, 
+                        self.readsbysampledir, read ) )
+        return inreads
+
+    def test_emptyinclude( self ):
+        ''' make sure if platform_include is empty list nothing is filtered '''
+        inreads = ['bob','sally']
+        eq_( inreads, structure.filter_reads_by_platform( inreads, [] ) )
+
+    @raises( ValueError )
+    def test_platform_invalid( self ):
+        ''' Platform not listed in settings '''
+        structure.filter_reads_by_platform( ['read1'], ['error'] )
+
+    def test_empty_reads( self ):
+        ''' Does it handle empty read list '''
+        eq_( [], structure.filter_reads_by_platform( [], self.platforms[0] ) )
+
+    def test_symboliclink( self ):
+        ''' Make sure that symbolic links are resolved correctly '''
+        inreads = self.mockreads()
+        # Replace names with links
+        reads = [join(self.readsbysampledir,basename(read)) \
+                    for read in inreads[self.platforms[0]]]
+        inreads[self.platforms[0]] = reads
+        eq_( reads, structure.filter_reads_by_platform( reads, [self.platforms[0]] ) )
+
+    def test_backwards_compat( self ):
+        ''' Ensure that naming scheme changes have minimal affect on this '''
+        inreads = {
+            self.platforms[0]:[
+                'Sample1_1.fastq',
+                'Sample2_1__Virus.fastq'
+            ],
+            self.platforms[1]:[
+                'Sample3_1.sff',
+                'Sample4_1__Virus.sff'
+            ]
+        }
+        inreads = self.createreads( inreads )
+        readlist = [read for plat,reads in inreads.items() for read in reads]
+        eq_(reads, structure.filter_reads_by_platform(reads,inreads.keys()))
+
+    def test_filters_reads( self ):
+        ''' Does it actually filter reads '''
+        inreads = self.mockreads()
+
+        # Should filter each platform
+        for plat,reads in inreads.items():
+            for rn in reads:
+                eq_( [rn], structure.filter_reads_by_platform( reads, [plat] ) )
+
+        # Should not filter anything
+        readlist = [read for plat, reads in inreads.items() for read in reads]
+        eq_( readlist,
+            structure.filter_reads_by_platform( readlist, inreads.keys() ) )

@@ -18,8 +18,16 @@ def determine_platform_from_path( datapath ):
     '''
         Given a read data or raw data path extract the platform from it
         I.E: NGSData/ReadData/Sanger/2013_04_02 would return Sanger
+        
+        Resolves symlinks
+
+        @param datapath - Path to a file
+        @return platform datapath belongs to or ValueError
     '''
-    abs_datapath = os.path.abspath( datapath )
+    if os.path.islink( datapath ):
+        abs_datapath = os.readlink( datapath )
+    else:
+        abs_datapath = os.path.abspath( datapath )
     platform_pat = "(" + "|".join( get_platforms().keys() ) + ")"
     m = re.search( platform_pat, abs_datapath )
     if m:
@@ -188,6 +196,31 @@ def create_platform_dirs( basepath ):
             else:
                 logger.exception( "Unkown error occurred trying to create {}".format(tpath) )
                 raise e
+
+def filter_reads_by_platform( reads, platform_include=[] ):
+    '''
+        Filter reads based on given platform.
+
+        @param reads - List of read paths
+        @param platform_include - List of platform's to include reads for
+        
+        @return a list of reads for platforms in platform_include
+    '''
+    if len( platform_include ) == 0 or len( reads ) == 0:
+        return reads
+
+    reads_keep = []
+    for i in range( len( reads ) ):
+        keep = False
+        for plat in platform_include:
+            # Only keep reads that match pattern for platform
+            if determine_platform_from_path( reads[i] ) == plat:
+                keep = True
+                reads_keep.append( reads[i] )
+        if not keep:
+            logging.debug( "Filtering out read {}".format(reads[i]) )
+
+    return reads_keep
 
 if __name__ == '__main__':
     import doctest

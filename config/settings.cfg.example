@@ -77,6 +77,7 @@ primer = '(?P<primer>[FR]\d+)'
     read_out_format = '{samplename}__{primer}__Sanger__{date}__{virus}.{extension}'
     [[Roche454]]
     extension = '(?P<extension>sff)'
+    midkey = '(?P<midkey>(?:RL|TI)\d+)'
     # rawread formats are to parse the output files from sfffile
     rawread_in_format = '454Reads\.MID${midkey}.sff'
     rawread_out_format = '454Reads.MID{midkey}.sff'
@@ -84,6 +85,7 @@ primer = '(?P<primer>[FR]\d+)'
     read_out_format = '{samplename}__{region}__{midkey}__{date}__{virus}.{extension}'
     [[IonTorrent]]
     extension = '(?P<extension>sff)'
+    midkey = '(?P<midkey>IX\d+)'
     filename_pattern = '%s__%s__%s__%s.%s'
     # rawread formats are to parse the demultiplexed names from the machine
     rawread_in_format = 'IonXpress_(?P<midkey>\d+)_R_${date}_(?P<extra>.*?).${extension}'
